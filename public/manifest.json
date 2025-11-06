@@ -1,0 +1,22 @@
+{
+  "name": "Dịch vụ hoa tiêu",
+  "short_name": "Vinacomin Pilot",
+  "description": "Dịch vụ cho hoa tiêu nhận nhiệm vụ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0d6efd",
+  "icons": [
+    {
+      "src": "/icons/logo-mobile.png",
+      "sizes": "192x196",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/logo-mobile2.png",
+      "sizes": "512x524",
+      "type": "image/png"
+    }
+  ]
+}
+

@@ -1,0 +1,328 @@
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Plus, RefreshCw, Search, Edit, Trash2, Calendar } from "lucide-react";
+import { pilotPlanService } from "@/services/api/dailyPilot";
+import { useToast } from "@/hooks/use-toast";
+import AdminLayout from "./component/AdminLayout";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+interface PilotPlan {
+  id: string;
+  planDate: string;
+  operationsOfficer: string;
+  pilotOfficer: string;
+  dutyPhone: string;
+  transportationInfo: string;
+  honNetPositionPlan: string;
+  status: string;
+}
+
+const PilotPlans = () => {
+  const [allPlans, setAllPlans] = useState<PilotPlan[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<PilotPlan | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [page, setPage] = useState(0);
+  const [size] = useState(10);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const fetchPlans = async () => {
+    setLoading(true);
+    const params = {
+        page: 0,
+        limit: 10,
+        sort: "desc",
+      };
+    try {
+      const data = await pilotPlanService.getAllPlans(params);
+      setAllPlans(data.content || []);
+    } catch (error) {
+      toast({
+        title: "Lỗi",
+        description: "Không thể tải danh sách kế hoạch",
+        variant: "destructive",
+      });
+      setAllPlans([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPlans();
+  }, []);
+
+  // 🔎 Lọc theo keyword + ngày
+  const filteredPlans = useMemo(() => {
+    let result = [...allPlans];
+
+    // Lọc theo keyword
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (plan) =>
+          plan.operationsOfficer?.toLowerCase().includes(query) ||
+          plan.pilotOfficer?.toLowerCase().includes(query) ||
+          plan.transportationInfo?.toLowerCase().includes(query) ||
+          plan.dutyPhone?.toLowerCase().includes(query)
+      );
+    }
+
+    // Lọc theo ngày (YYYY-MM-DD)
+    if (selectedDate) {
+      result = result.filter((plan) => plan.planDate?.startsWith(selectedDate));
+    }
+
+    return result;
+  }, [allPlans, searchQuery, selectedDate]);
+
+  const totalPages = Math.ceil(filteredPlans.length / size);
+  const paginatedPlans = useMemo(() => {
+    const start = page * size;
+    return filteredPlans.slice(start, start + size);
+  }, [filteredPlans, page, size]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [searchQuery, selectedDate]);
+
+  const getStatusBadge = (status: string) => {
+    const statusMap: Record<
+      string,
+      { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+    > = {
+      PENDING: { label: "Chờ duyệt", variant: "outline" },
+      UP: { label: "Đã duyệt", variant: "default" },
+    };
+    const s = statusMap[status] || { label: status, variant: "outline" };
+    return <Badge variant={s.variant}>{s.label}</Badge>;
+  };
+
+  return (
+    <AdminLayout title="Quản lý kế hoạch điều động">
+      <div className="min-h-screen bg-gradient-ocean-light">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-primary mb-2">
+              Quản Lý Kế Hoạch Điều Động
+            </h1>
+            <p className="text-muted-foreground">
+              Danh sách các kế hoạch điều động hoa tiêu
+            </p>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Danh Sách Kế Hoạch</CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={fetchPlans}
+                    disabled={loading}
+                  >
+                    <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+                  </Button>
+                  <Button onClick={() => navigate("/admin/pilot-plans/create")}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Tạo kế hoạch
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent>
+              {/* Bộ lọc tìm kiếm & ngày */}
+              <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                {/* Ô tìm kiếm */}
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Tìm kiếm theo người điều hành, hoa tiêu, phương tiện..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+
+                {/* Ô chọn ngày */}
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="pl-10 w-full sm:w-[200px]"
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-md border divide-y divide-gray-200">
+                <Table className="border-collapse">
+                  <TableHeader>
+                    <TableRow className="bg-gray-100">
+                      <TableHead className="border">STT</TableHead>
+                      <TableHead className="border">Ngày kế hoạch</TableHead>
+                      <TableHead className="border">Trực ban ĐHSX</TableHead>
+                      <TableHead className="border">Trực ban hoa tiêu</TableHead>
+                      <TableHead className="border">Điện thoại trực</TableHead>
+                      <TableHead className="border">Thông tin phương tiện</TableHead>
+                      <TableHead className="border text-right">Hành động</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-6">
+                          Đang tải...
+                        </TableCell>
+                      </TableRow>
+                    ) : paginatedPlans.length > 0 ? (
+                      paginatedPlans.map((plan, i) => (
+                        <TableRow key={plan.id} className="hover:bg-gray-50">
+                          <TableCell className="border">{page * size + i + 1}</TableCell>
+                          <TableCell className="border font-medium">{plan.planDate}</TableCell>
+                          <TableCell className="border">{plan.operationsOfficer}</TableCell>
+                          <TableCell className="border">{plan.pilotOfficer}</TableCell>
+                          <TableCell className="border">{plan.dutyPhone}</TableCell>
+                          <TableCell className="border max-w-xs truncate">
+                            {plan.transportationInfo}
+                          </TableCell>
+                          <TableCell className="border text-right space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/admin/pilot-plans/${plan.id}`)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-destructive border-destructive"
+                              onClick={() => setSelectedPlan(plan)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-6">
+                          {searchQuery || selectedDate
+                            ? `Không tìm thấy kết quả phù hợp`
+                            : "Không có kế hoạch nào"}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Phân trang */}
+              <div className="flex justify-between items-center mt-4">
+                <div className="text-sm text-muted-foreground">
+                  Hiển thị {page * size + 1} -{" "}
+                  {Math.min((page + 1) * size, filteredPlans.length)} của{" "}
+                  {filteredPlans.length}
+                </div>
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="outline"
+                    disabled={page === 0}
+                    onClick={() => setPage(page - 1)}
+                  >
+                    Trước
+                  </Button>
+                  <span className="text-sm">
+                    Trang {page + 1} / {totalPages || 1}
+                  </span>
+                  <Button
+                    variant="outline"
+                    disabled={page + 1 >= totalPages}
+                    onClick={() => setPage(page + 1)}
+                  >
+                    Sau
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <AlertDialog open={!!selectedPlan} onOpenChange={() => setSelectedPlan(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Xác nhận xóa kế hoạch</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Bạn có chắc chắn muốn xóa kế hoạch ngày{" "}
+                  <strong>{selectedPlan?.planDate}</strong> không?
+                  Hành động này không thể hoàn tác.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setSelectedPlan(null)}>
+                  Hủy
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive hover:bg-destructive/90"
+                  onClick={async () => {
+                    if (!selectedPlan) return;
+                    try {
+                      await pilotPlanService.deletePlan(selectedPlan.id);
+                      toast({
+                        title: "Thành công",
+                        description: "Đã xóa kế hoạch",
+                      });
+                      fetchPlans();
+                    } catch {
+                      toast({
+                        title: "Lỗi",
+                        description: "Không thể xóa kế hoạch",
+                        variant: "destructive",
+                      });
+                    } finally {
+                      setSelectedPlan(null);
+                    }
+                  }}
+                >
+                  Xóa
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </div>
+    </AdminLayout>
+  );
+};
+
+export default PilotPlans;
