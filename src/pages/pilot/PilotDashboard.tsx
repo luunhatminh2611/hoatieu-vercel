@@ -173,7 +173,7 @@ const PilotDashboard = () => {
     setPage(0);
     setKeyword("");
     setSearchTerm("");
-    
+
     if (activeTab === "profile") {
       fetchUserDetail();
     } else {
@@ -271,9 +271,24 @@ const PilotDashboard = () => {
           {/* Assigned tab */}
           <TabsContent value="assigned">
             <Card>
-              <CardHeader>
-                <CardTitle>Nhiệm vụ được giao</CardTitle>
-                <CardDescription>Danh sách các nhiệm vụ hiện tại</CardDescription>
+              <CardHeader className="flex items-center justify-between">
+                {/* Tiêu đề + mô tả bên trái */}
+                <div>
+                  <CardTitle>Nhiệm vụ được giao</CardTitle>
+                  <CardDescription>Danh sách các nhiệm vụ hiện tại</CardDescription>
+                </div>
+
+                {/* Nút tải lại bên phải */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setPage(0);
+                    fetchData(0, keyword, startDate, endDate);
+                  }}
+                >
+                  Tải lại
+                </Button>
               </CardHeader>
               <CardContent>
                 {loading ? (
@@ -476,13 +491,12 @@ const PilotDashboard = () => {
                             @{usersDetail?.username || "N/A"}
                           </p>
                           <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                            <span className={`px-3 py-1 rounded-full text-xs md:text-sm font-semibold ${
-                              usersDetail?.role === "ADMIN"
+                            <span className={`px-3 py-1 rounded-full text-xs md:text-sm font-semibold ${usersDetail?.role === "ADMIN"
                                 ? "bg-blue-100 text-blue-600"
                                 : usersDetail?.role === "PILOT"
-                                ? "bg-green-100 text-green-600"
-                                : "bg-gray-100 text-gray-600"
-                            }`}>
+                                  ? "bg-green-100 text-green-600"
+                                  : "bg-gray-100 text-gray-600"
+                              }`}>
                               {usersDetail?.role || "N/A"}
                             </span>
                             {usersDetail?.rank && (
@@ -623,8 +637,8 @@ const PilotDashboard = () => {
             >
               Hủy
             </Button>
-            <Button 
-              onClick={handleChangePassword} 
+            <Button
+              onClick={handleChangePassword}
               disabled={changingPassword}
               className="w-full sm:w-auto"
             >

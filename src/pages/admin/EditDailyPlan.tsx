@@ -24,7 +24,7 @@ import { ArrowLeft, Search, Edit, Save, X, Plus, Trash2 } from "lucide-react";
 import { pilotPlanService } from "@/services/api/dailyPilot";
 import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "./component/AdminLayout";
-import AssignmentModal from "@/pages/admin/component/CreateAssign";
+import ChangePilotModal from "@/pages/admin/component/ChangePilotModal";
 import userService from "@/services/api/pilot";
 
 const formSchema = z.object({
@@ -79,6 +79,8 @@ const EditPilotPlan = () => {
         transportMethod: "",
         agentName: "",
     });
+    const [isChangePilotModalOpen, setIsChangePilotModalOpen] = useState(false);
+    const [changingPilotData, setChangingPilotData] = useState(null);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -256,10 +258,24 @@ const EditPilotPlan = () => {
     };
     // Sửa
     const handleEditRow = (assignment) => {
+        console.log('=== handleEditRow ===');
+        console.log('assignment:', assignment);
+        console.log('users:', users);
+
         setEditingRowId(assignment.id);
+
+        // Lưu lại ID gốc để so sánh sau này
+        const originalPilotId = assignment.pilotId || findUserIdByName(assignment.pilotName);
+        const originalTraineeId = assignment.traineeId || findUserIdByName(assignment.traineeName);
+
+        console.log('Found IDs:', {
+            pilotName: assignment.pilotName,
+            originalPilotId,
+            traineeName: assignment.traineeName,
+            originalTraineeId
+        });
+
         setEditingRowData({
-            pilotId: assignment.pilotId || findUserIdByName(assignment.pilotName),
-            traineeId: assignment.traineeId || findUserIdByName(assignment.traineeName),
             arrivalTime: assignment.arrivalTime || "",
             pob: assignment.pob || "",
             shipName: assignment.shipName || "",
@@ -271,9 +287,6 @@ const EditPilotPlan = () => {
             transportMethod: assignment.transportMethod || "",
             agentName: assignment.agentName || "",
             pilotRoute: assignment.pilotRoute || "",
-            // // Lưu thêm tên để hiển thị
-            // pilotName: assignment.pilotName || "",
-            // traineeName: assignment.traineeName || "",
         });
     };
 
@@ -287,15 +300,8 @@ const EditPilotPlan = () => {
 
         setLoading(true);
         try {
-            // Tìm assignment gốc để so sánh
-            const originalAssignment = assignments.find(a => a.id === editingRowId);
-
-            // Xác định người nào thay đổi
-            const pilotChanged = originalAssignment?.pilotId !== editingRowData.pilotId;
-            const traineeChanged = originalAssignment?.traineeId !== editingRowData.traineeId;
-
-            // Tạo payload cơ bản
-            const basePayload = {
+            // 1. Cập nhật thông tin assignment (không bao gồm pilotId và traineeId)
+            const assignmentPayload = {
                 id: editingRowId,
                 arrivalTime: editingRowData.arrivalTime,
                 pob: editingRowData.pob,
@@ -311,14 +317,7 @@ const EditPilotPlan = () => {
                 dailyPilotPlanId: planId,
             };
 
-            // Tạo payload cuối cùng với điều kiện
-            const payload = {
-                ...basePayload,
-                ...(pilotChanged && editingRowData.pilotId && { pilotId: editingRowData.pilotId }),
-                ...(traineeChanged && editingRowData.traineeId && { traineeId: editingRowData.traineeId }),
-            };
-
-            await pilotPlanService.createPilotAssignment(payload);
+            await pilotPlanService.createPilotAssignment(assignmentPayload);
 
             toast({
                 title: "Thành công",
@@ -388,7 +387,8 @@ const EditPilotPlan = () => {
         const data = isNew ? newRowData : editingRowData;
         const setData = isNew ? setNewRowData : setEditingRowData;
 
-        if (field === "pilotId" || field === "traineeId") {
+        // CHỈ cho phép select hoa tiêu khi THÊM MỚI (isNew = true)
+        if ((field === "pilotId" || field === "traineeId") && isNew) {
             return (
                 <select
                     className="w-full border rounded px-2 py-1 bg-[#003399] text-white"
@@ -476,6 +476,48 @@ const EditPilotPlan = () => {
             </AdminLayout>
         );
     }
+
+    const handleChangePilotClick = (assignment, type) => {
+        setChangingPilotData({
+            assignmentId: assignment.id,
+            type: type, // 'PILOT' hoặc 'TRAINEE'
+            currentUserId: type === 'PILOT' ? assignment.pilotId : assignment.traineeId,
+            currentUserName: type === 'PILOT' ? assignment.pilotName : assignment.traineeName
+        });
+        setIsChangePilotModalOpen(true);
+    };
+
+    const handleSaveChangePilot = async (newUserId) => {
+        if (!changingPilotData || !newUserId) return;
+
+        setLoading(true);
+        try {
+            await pilotPlanService.updateAssignmentStatus({
+                id: changingPilotData.assignmentId,
+                userId: newUserId,
+                status: "PENDING",
+                type: changingPilotData.type
+            });
+
+            toast({
+                title: "Thành công",
+                description: `Đã thay đổi ${changingPilotData.type === 'PILOT' ? 'hoa tiêu' : 'tập sự'}`,
+            });
+
+            setIsChangePilotModalOpen(false);
+            setChangingPilotData(null);
+            await fetchAssignments();
+        } catch (error) {
+            console.error(error);
+            toast({
+                title: "Lỗi",
+                description: "Không thể thay đổi",
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <AdminLayout title="Chỉnh sửa kế hoạch">
@@ -721,55 +763,62 @@ const EditPilotPlan = () => {
                                                                 {isEditingThis ? renderEditableCell(a.pob, "pob") : (a.pob || "-")}
                                                             </td>
                                                             <td className="text-center border-[3px] border-white px-2 py-2">
-                                                                {isEditingThis ? (
-                                                                    renderEditableCell(a.pilotId, "pilotId")
-                                                                ) : (
-                                                                    <div className="flex flex-col items-center">
-                                                                        <span>{a.pilotName || findUserIdByName(a.pilotId)}</span>
-                                                                        {a.statusPilot && (
-                                                                            <span
-                                                                                className={`text-xs mt-1 ${a.statusPilot === "CONFIRMED"
-                                                                                    ? "text-green-400"
-                                                                                    : a.statusPilot === "REJECTED"
-                                                                                        ? "text-red-400"
-                                                                                        : "text-yellow-300"
-                                                                                    }`}
-                                                                            >
-                                                                                {a.statusPilot === "CONFIRMED"
-                                                                                    ? "(Chấp nhận)"
-                                                                                    : a.statusPilot === "REJECTED"
-                                                                                        ? "(Từ chối)"
-                                                                                        : "(Đã giao)"}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                )}
+                                                                <div className="flex flex-col items-center gap-1">
+                                                                    <span>{a.pilotName || "-"}</span>
+                                                                    {a.statusPilot && (
+                                                                        <span
+                                                                            className={`text-xs mt-1 ${a.statusPilot === "CONFIRMED"
+                                                                                ? "text-green-400"
+                                                                                : a.statusPilot === "REJECTED"
+                                                                                    ? "text-red-400"
+                                                                                    : "text-yellow-300"
+                                                                                }`}
+                                                                        >
+                                                                            {a.statusPilot === "CONFIRMED"
+                                                                                ? "(Chấp nhận)"
+                                                                                : a.statusPilot === "REJECTED"
+                                                                                    ? "(Từ chối)"
+                                                                                    : "(Đã giao)"}
+                                                                        </span>
+                                                                    )}
+                                                                    <Button
+                                                                        size="sm"
+                                                                        onClick={() => handleChangePilotClick(a, 'PILOT')}
+                                                                        className="h-6 px-2 text-xs bg-white/20"
+                                                                    >
+                                                                        Đổi người
+                                                                    </Button>
+                                                                </div>
                                                             </td>
 
+                                                            {/* Cột Tập sự - tương tự */}
                                                             <td className="text-center border-[3px] border-white px-2 py-2">
-                                                                {isEditingThis ? (
-                                                                    renderEditableCell(a.traineeId, "traineeId")
-                                                                ) : (
-                                                                    <div className="flex flex-col items-center">
-                                                                        <span>{a.traineeName || findUserIdByName(a.traineeId)}</span>
-                                                                        {a.statusTrainee && (
-                                                                            <span
-                                                                                className={`text-xs mt-1 ${a.statusTrainee === "CONFIRMED"
-                                                                                    ? "text-green-400"
-                                                                                    : a.statusTrainee === "REJECTED"
-                                                                                        ? "text-red-400"
-                                                                                        : "text-yellow-300"
-                                                                                    }`}
-                                                                            >
-                                                                                {a.statusTrainee === "CONFIRMED"
-                                                                                    ? "(Chấp nhận)"
-                                                                                    : a.statusTrainee === "REJECTED"
-                                                                                        ? "(Từ chối)"
-                                                                                        : "(Đã giao)"}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                )}
+                                                                <div className="flex flex-col items-center gap-1">
+                                                                    <span>{a.traineeName || "-"}</span>
+                                                                    {a.statusTrainee && (
+                                                                        <span
+                                                                            className={`text-xs mt-1 ${a.statusTrainee === "CONFIRMED"
+                                                                                ? "text-green-400"
+                                                                                : a.statusTrainee === "REJECTED"
+                                                                                    ? "text-red-400"
+                                                                                    : "text-yellow-300"
+                                                                                }`}
+                                                                        >
+                                                                            {a.statusTrainee === "CONFIRMED"
+                                                                                ? "(Chấp nhận)"
+                                                                                : a.statusTrainee === "REJECTED"
+                                                                                    ? "(Từ chối)"
+                                                                                    : "(Đã giao)"}
+                                                                        </span>
+                                                                    )}
+                                                                    <Button
+                                                                        size="sm"
+                                                                        onClick={() => handleChangePilotClick(a, 'TRAINEE')}
+                                                                        className="h-6 px-2 text-xs bg-white/20"
+                                                                    >
+                                                                        Đổi người
+                                                                    </Button>
+                                                                </div>
                                                             </td>
                                                             <td className="text-center border-[3px] border-white px-2 py-2">
                                                                 {isEditingThis ? renderEditableCell(a.shipName, "shipName") : (a.shipName || "-")}
@@ -874,7 +923,7 @@ const EditPilotPlan = () => {
                                                         <td className="border-[3px] border-white px-2 py-2">
                                                             {renderEditableCell("", "tugBoat", "text", true)}
                                                         </td>
-                                                        
+
                                                         <td className="border-[3px] border-white px-2 py-2">
                                                             {renderEditableCell("", "agentName", "text", true)}
                                                         </td>
@@ -926,12 +975,17 @@ const EditPilotPlan = () => {
                     </div>
                 </div>
             </div>
-            {/* <AssignmentModal
-                open={isAssignmentModalOpen}
-                onClose={() => setIsAssignmentModalOpen(false)}
-                planId={planId}
-                onSuccess={fetchAssignments}
-            /> */}
+            <ChangePilotModal
+                open={isChangePilotModalOpen}
+                onClose={() => {
+                    setIsChangePilotModalOpen(false);
+                    setChangingPilotData(null);
+                }}
+                data={changingPilotData}
+                users={users}
+                onSave={handleSaveChangePilot}
+                loading={loading}
+            />
         </AdminLayout>
     );
 };

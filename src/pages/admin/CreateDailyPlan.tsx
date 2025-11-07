@@ -25,6 +25,7 @@ import { pilotPlanService } from "@/services/api/dailyPilot";
 import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "./component/AdminLayout";
 import userService from "@/services/api/pilot";
+import ChangePilotModal from "./component/ChangePilotModal";
 // import AssignmentModal from "./component/CreateAssign";
 
 const formSchema = z.object({
@@ -74,6 +75,8 @@ const CreatePilotPlan = () => {
         transportMethod: "",
         agentName: "",
     });
+    const [isChangePilotModalOpen, setIsChangePilotModalOpen] = useState(false);
+    const [changingPilotData, setChangingPilotData] = useState(null);
 
     const navigate = useNavigate();
     const { toast } = useToast();
@@ -299,8 +302,6 @@ const CreatePilotPlan = () => {
     const handleEditRow = (assignment) => {
         setEditingRowId(assignment.id);
         setEditingRowData({
-            pilotId: assignment.pilotId || findUserIdByName(assignment.pilotName),
-            traineeId: assignment.traineeId || findUserIdByName(assignment.traineeName),
             arrivalTime: assignment.arrivalTime || "",
             pob: assignment.pob || "",
             shipName: assignment.shipName || "",
@@ -312,9 +313,6 @@ const CreatePilotPlan = () => {
             transportMethod: assignment.transportMethod || "",
             agentName: assignment.agentName || "",
             pilotRoute: assignment.pilotRoute || "",
-            // Lưu thêm tên để hiển thị
-            pilotName: assignment.pilotName || "",
-            traineeName: assignment.traineeName || "",
         });
     };
 
@@ -328,15 +326,7 @@ const CreatePilotPlan = () => {
 
         setLoading(true);
         try {
-            // Tìm assignment gốc để so sánh
-            const originalAssignment = assignments.find(a => a.id === editingRowId);
-
-            // Xác định người nào thay đổi
-            const pilotChanged = originalAssignment?.pilotId !== editingRowData.pilotId;
-            const traineeChanged = originalAssignment?.traineeId !== editingRowData.traineeId;
-
-            // Tạo payload cơ bản
-            const basePayload = {
+            await pilotPlanService.createPilotAssignment({
                 id: editingRowId,
                 arrivalTime: editingRowData.arrivalTime,
                 pob: editingRowData.pob,
@@ -350,16 +340,7 @@ const CreatePilotPlan = () => {
                 agentName: editingRowData.agentName,
                 pilotRoute: editingRowData.pilotRoute,
                 dailyPilotPlanId: createdPlanId,
-            };
-
-            // Tạo payload cuối cùng với điều kiện
-            const payload = {
-                ...basePayload,
-                ...(pilotChanged && editingRowData.pilotId && { pilotId: editingRowData.pilotId }),
-                ...(traineeChanged && editingRowData.traineeId && { traineeId: editingRowData.traineeId }),
-            };
-
-            await pilotPlanService.createPilotAssignment(payload);
+            });
 
             toast({
                 title: "Thành công",
@@ -412,7 +393,8 @@ const CreatePilotPlan = () => {
         const data = isNew ? newRowData : editingRowData;
         const setData = isNew ? setNewRowData : setEditingRowData;
 
-        if (field === "pilotId" || field === "traineeId") {
+        // CHỈ cho phép select hoa tiêu khi THÊM MỚI (isNew = true)
+        if ((field === "pilotId" || field === "traineeId") && isNew) {
             return (
                 <select
                     className="w-full border rounded px-2 py-1 bg-[#003399] text-white"
@@ -437,6 +419,48 @@ const CreatePilotPlan = () => {
                 className="w-full border rounded px-2 py-1 bg-[#003399] text-white border-white"
             />
         );
+    };
+
+    const handleChangePilotClick = (assignment, type) => {
+        setChangingPilotData({
+            assignmentId: assignment.id,
+            type: type,
+            currentUserId: type === 'PILOT' ? assignment.pilotId : assignment.traineeId,
+            currentUserName: type === 'PILOT' ? assignment.pilotName : assignment.traineeName
+        });
+        setIsChangePilotModalOpen(true);
+    };
+
+    const handleSaveChangePilot = async (newUserId) => {
+        if (!changingPilotData || !newUserId) return;
+
+        setLoading(true);
+        try {
+            await pilotPlanService.updateAssignmentStatus({
+                id: changingPilotData.assignmentId,
+                userId: newUserId,
+                status: "PENDING",
+                type: changingPilotData.type
+            });
+
+            toast({
+                title: "Thành công",
+                description: `Đã thay đổi ${changingPilotData.type === 'PILOT' ? 'hoa tiêu' : 'tập sự'}`,
+            });
+
+            setIsChangePilotModalOpen(false);
+            setChangingPilotData(null);
+            await fetchAssignments(createdPlanId);
+        } catch (error) {
+            console.error(error);
+            toast({
+                title: "Lỗi",
+                description: "Không thể thay đổi",
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const planDate = form.watch("planDate");
@@ -710,55 +734,47 @@ const CreatePilotPlan = () => {
                                                                 {isEditingThis ? renderEditableCell(a.pob, "pob") : (a.pob || "-")}
                                                             </td>
                                                             <td className="text-center border-[3px] border-white px-2 py-2">
-                                                                {isEditingThis ? (
-                                                                    renderEditableCell(a.pilotId, "pilotId")
-                                                                ) : (
-                                                                    <div className="flex flex-col items-center">
-                                                                        <span>{a.pilotName || findUserIdByName(a.pilotId)}</span>
-                                                                        {a.statusPilot && (
-                                                                            <span
-                                                                                className={`text-xs mt-1 ${a.statusPilot === "CONFIRMED"
-                                                                                    ? "text-green-400"
-                                                                                    : a.statusPilot === "REJECTED"
-                                                                                        ? "text-red-400"
-                                                                                        : "text-yellow-300"
-                                                                                    }`}
-                                                                            >
-                                                                                {a.statusPilot === "CONFIRMED"
-                                                                                    ? "(Chấp nhận)"
-                                                                                    : a.statusPilot === "REJECTED"
-                                                                                        ? "(Từ chối)"
-                                                                                        : "(Đã giao)"}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                )}
+                                                                <div className="flex flex-col items-center gap-1">
+                                                                    <span>{a.pilotName || "-"}</span>
+                                                                    {a.statusPilot && (
+                                                                        <span className={`text-xs ${a.statusPilot === "CONFIRMED" ? "text-green-400" :
+                                                                            a.statusPilot === "REJECTED" ? "text-red-400" : "text-yellow-300"
+                                                                            }`}>
+                                                                            {a.statusPilot === "CONFIRMED" ? "(Chấp nhận)" :
+                                                                                a.statusPilot === "REJECTED" ? "(Từ chối)" : "(Đã giao)"}
+                                                                        </span>
+                                                                    )}
+                                                                    <Button
+                                                                        size="sm"
+                                                                        onClick={() => handleChangePilotClick(a, 'PILOT')}
+                                                                        className="h-6 px-2 text-xs text-white bg-white/20"
+                                                                    >
+                                                                        Đổi người
+                                                                    </Button>
+                                                                </div>
                                                             </td>
 
+                                                            {/* Cột Tập sự */}
                                                             <td className="text-center border-[3px] border-white px-2 py-2">
-                                                                {isEditingThis ? (
-                                                                    renderEditableCell(a.traineeId, "traineeId")
-                                                                ) : (
-                                                                    <div className="flex flex-col items-center">
-                                                                        <span>{a.traineeName || findUserIdByName(a.traineeId)}</span>
-                                                                        {a.statusTrainee && (
-                                                                            <span
-                                                                                className={`text-xs mt-1 ${a.statusTrainee === "CONFIRMED"
-                                                                                    ? "text-green-400"
-                                                                                    : a.statusTrainee === "REJECTED"
-                                                                                        ? "text-red-400"
-                                                                                        : "text-yellow-300"
-                                                                                    }`}
-                                                                            >
-                                                                                {a.statusTrainee === "CONFIRMED"
-                                                                                    ? "(Chấp nhận)"
-                                                                                    : a.statusTrainee === "REJECTED"
-                                                                                        ? "(Từ chối)"
-                                                                                        : "(Đã giao)"}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                )}
+                                                                <div className="flex flex-col items-center gap-1">
+                                                                    <span>{a.traineeName || "-"}</span>
+                                                                    {a.statusTrainee && (
+                                                                        <span className={`text-xs ${a.statusTrainee === "CONFIRMED" ? "text-green-400" :
+                                                                            a.statusTrainee === "REJECTED" ? "text-red-400" : "text-yellow-300"
+                                                                            }`}>
+                                                                            {a.statusTrainee === "CONFIRMED" ? "(Chấp nhận)" :
+                                                                                a.statusTrainee === "REJECTED" ? "(Từ chối)" : "(Đã giao)"}
+                                                                        </span>
+                                                                    )}
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="ghost"
+                                                                        onClick={() => handleChangePilotClick(a, 'TRAINEE')}
+                                                                        className="h-6 px-2 text-xs text-white hover:bg-white/20"
+                                                                    >
+                                                                        Đổi người
+                                                                    </Button>
+                                                                </div>
                                                             </td>
                                                             <td className="text-center border-[3px] border-white px-2 py-2">
                                                                 {isEditingThis ? renderEditableCell(a.shipName, "shipName") : (a.shipName || "-")}
@@ -916,12 +932,17 @@ const CreatePilotPlan = () => {
                     </div>
                 </div>
             </div>
-            {/* <AssignmentModal
-                open={isAssignmentModalOpen}
-                onClose={() => setIsAssignmentModalOpen(false)}
-                planId={createdPlanId}
-                onSuccess={() => fetchAssignments(createdPlanId)}
-            /> */}
+            <ChangePilotModal
+                open={isChangePilotModalOpen}
+                onClose={() => {
+                    setIsChangePilotModalOpen(false);
+                    setChangingPilotData(null);
+                }}
+                data={changingPilotData}
+                users={users}
+                onSave={handleSaveChangePilot}
+                loading={loading}
+            />
         </AdminLayout>
     );
 };

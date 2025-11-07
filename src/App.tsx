@@ -47,35 +47,26 @@ import { authService } from "./services/api";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const currentUser = store.getState().auth?.user;
-  const userToken = localStorage.getItem("clinic_auth_token");
   useEffect(() => {
     const init = async () => {
       try {
         await initializeMessaging();
-        const firebaseToken = await requestForToken();
-        console.log("USER:", firebaseToken)
 
-
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        if (currentUser && userToken && firebaseToken) {
-          await authService.registerNotification(firebaseToken);
-          localStorage.setItem("firebase_token", firebaseToken);
-        }
-
+        // Chỉ nhận message, không đăng ký lại
         onMessageListener()
           .then((payload) => {
-            console.log("Received foreground message: ", payload);
+            console.log("Received foreground message:", payload);
+            // Có thể toast thông báo ở đây nếu muốn
           })
           .catch((err) => console.error("onMessage error:", err));
       } catch (error) {
-        console.error("Lỗi:", error);
+        console.error("Lỗi FCM:", error);
       }
     };
 
     init();
-  }, []);
+  }, [])
+
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
