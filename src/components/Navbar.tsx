@@ -54,9 +54,9 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
+  const handleLogout = async () => {
+    const result = await logout();
+    window.location.href = "/";
   };
 
   const goToDashboard = () => {

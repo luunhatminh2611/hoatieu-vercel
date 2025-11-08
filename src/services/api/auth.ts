@@ -33,16 +33,19 @@ export const authService = {
   },
 
   logout: async () => {
+    console.log("START LOGOUT");
     try {
-      const accessToken = localStorage.getItem(TOKEN_KEY);
-      const refreshToken = localStorage.getItem("refreshToken");
-      await api.post("/Auth/logout", { accessToken, refreshToken });
+      console.log("Calling API /user/logout");
+      const response = await api.put("/user/logout");
+      console.log("API Response:", response);
     } catch (error) {
-      console.error("Logout API error:", error);
+      console.error("API Error:", error);
     } finally {
+      console.log("Clearing localStorage...");
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem("refreshToken");
       localStorage.removeItem(USER_KEY);
+      console.log("LocalStorage cleared");
     }
   },
 

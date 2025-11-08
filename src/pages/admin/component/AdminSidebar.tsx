@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import userService from "@/services/api/pilot";
 import { useToast } from "@/hooks/use-toast";
+import { authService } from "@/services/api";
 
 const menuItems = [
   { icon: Home, label: "Trang chủ", path: "/" },
@@ -19,13 +20,13 @@ const AdminSidebar = () => {
   const location = useLocation();
   const [usersDetail, setUsersDetail] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
+  const handleLogout = async () => {
+    const result = await logout();
+    window.location.href = "/";
   };
 
   const fetchUserDetail = async () => {

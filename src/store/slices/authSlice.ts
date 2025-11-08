@@ -142,8 +142,18 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         localStorage.removeItem("clinic_auth_token");
         localStorage.removeItem("clinic_user_data");
-      });
-  },
+      })
+      .addCase(logoutUser.rejected, (state) => {
+        // Dù API fail, vẫn logout locally
+        state.loading = false;
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
+        localStorage.removeItem("clinic_auth_token");
+        localStorage.removeItem("clinic_user_data");
+        localStorage.removeItem("refreshToken");
+      })
+},
 });
 
 export const { clearError, setUser, logout } = authSlice.actions;
