@@ -98,7 +98,7 @@ const Pilots = () => {
                     <CardHeader>
                       <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden border-4 border-primary">
                         <img
-                          src={pilot.avatarUrl || pilotImage}
+                          src={userService.getFileUrl(pilot.keyAvatar) || pilotImage }
                           alt={pilot.name}
                           className="w-full h-full object-cover"
                           onError={(e) => {

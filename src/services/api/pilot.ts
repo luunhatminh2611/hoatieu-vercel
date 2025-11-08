@@ -77,7 +77,7 @@ export const userService = {
 
     getFileUrl: (fileName) => {
         if (!fileName) return null;
-        return `${import.meta.env.VITE_API_BASE_URL}/file/${fileName}`;
+        return `${import.meta.env.VITE_API_BASE_URL}/file?fileKey=${fileName}`;
     },
 };
 

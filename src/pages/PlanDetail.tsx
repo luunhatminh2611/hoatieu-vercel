@@ -180,8 +180,8 @@ const PlanDetail = () => {
                           <td className="text-center border-[3px] border-white px-2 py-2">{a.gt || "-"}</td>
                           <td className="text-center border-[3px] border-white px-2 py-2">{a.fromTo || "-"}</td>
                           <td className="text-center border-[3px] border-white px-2 py-2">{a.tugBoat || "-"}</td>
+                          <td className="text-center border-[3px] border-white px-2 py-2">{a.transportMethod || "-"}</td>
                           <td className="text-center border-[3px] border-white px-2 py-2">{a.agentName || "-"}</td>
-                          <td className="text-center border-[3px] border-white px-2 py-2">{a.pilotRoute || "-"}</td>
                         </tr>
                       ))
                     ) : (

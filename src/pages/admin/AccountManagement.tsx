@@ -33,9 +33,11 @@ import userService from "@/services/api/pilot";
 const AccountManagement = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
-  const [rankFilter, setRankFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -52,6 +54,7 @@ const AccountManagement = () => {
     role: "",
     avatarFile: null,
     avatarUrl: "",
+    keyAvatar: "",
   });
 
   const fetchAllUsers = async () => {
@@ -61,8 +64,8 @@ const AccountManagement = () => {
         page,
         limit: size,
         keyword: searchQuery,
-        rank: rankFilter,
-        status: true,
+        rank: "",
+        status: statusFilter === "all" ? "" : statusFilter === "active" ? true : false,
         role: "",
       });
 
@@ -83,7 +86,7 @@ const AccountManagement = () => {
 
   useEffect(() => {
     fetchAllUsers();
-  }, [searchQuery, rankFilter, page]);
+  }, [searchQuery, statusFilter, page]);
 
   const handleAvatarChange = (e, isEdit = false) => {
     const file = e.target.files[0];
@@ -134,6 +137,7 @@ const AccountManagement = () => {
         role: "",
         avatarFile: null,
         avatarUrl: "",
+        keyAvatar: "",
       });
 
       fetchAllUsers(); // Reload data
@@ -179,7 +183,6 @@ const AccountManagement = () => {
     }
   };
 
-  // 🔹 Khóa user
   const handleBanUser = async (user) => {
     try {
       await userService.banUser({
@@ -193,6 +196,8 @@ const AccountManagement = () => {
         variant: "destructive",
       });
 
+      setShowConfirmDialog(false);
+      setConfirmAction(null);
       fetchAllUsers();
     } catch (error) {
       toast({
@@ -202,6 +207,47 @@ const AccountManagement = () => {
       });
     }
   };
+
+  // 🔹 Kích hoạt lại user
+  const handleActivateUser = async (user) => {
+    try {
+      await userService.banUser({
+        ids: [user.id],
+        status: "true",
+      });
+
+      toast({
+        title: "Đã kích hoạt tài khoản",
+        description: `${user.name} (${user.email}) đã được kích hoạt lại.`,
+      });
+
+      setShowConfirmDialog(false);
+      setConfirmAction(null);
+      fetchAllUsers();
+    } catch (error) {
+      toast({
+        title: "Lỗi kích hoạt tài khoản",
+        description: "Không thể cập nhật trạng thái người dùng",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const openConfirmDialog = (action, user) => {
+    setConfirmAction({ action, user });
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirm = () => {
+    if (confirmAction) {
+      if (confirmAction.action === "ban") {
+        handleBanUser(confirmAction.user);
+      } else if (confirmAction.action === "activate") {
+        handleActivateUser(confirmAction.user);
+      }
+    }
+  };
+
   return (
     <AdminLayout title="Quản Lý Hoa Tiêu">
       <div className="min-h-screen bg-gradient-ocean-light">
@@ -285,10 +331,10 @@ const AccountManagement = () => {
                           <option value="PILOT">PILOT</option>
                         </select>
                       </div>
-                      {newUser.avatarUrl && (
+                      {(newUser.avatarUrl || newUser.keyAvatar) && (
                         <div className="flex flex-col items-center gap-2">
                           <img
-                            src={newUser.avatarUrl}
+                            src={newUser.avatarUrl || userService.getFileUrl(newUser.keyAvatar)}
                             alt="Preview"
                             className="w-24 h-24 rounded-full object-cover"
                           />
@@ -334,12 +380,15 @@ const AccountManagement = () => {
                     className="pl-10"
                   />
                 </div>
-                <Input
-                  placeholder="Lọc theo rank..."
-                  value={rankFilter}
-                  onChange={(e) => setRankFilter(e.target.value)}
-                  className="w-40"
-                />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-48 border rounded-md px-3 py-2"
+                >
+                  <option value="all">Tất cả trạng thái</option>
+                  <option value="active">Hiệu lực</option>
+                  <option value="inactive">Vô hiệu hóa</option>
+                </select>
               </div>
 
               <div className="rounded-md border divide-y divide-gray-200">
@@ -351,6 +400,8 @@ const AccountManagement = () => {
                       <TableHead className="border">Email</TableHead>
                       <TableHead className="border">Số điện thoại</TableHead>
                       <TableHead className="border">Rank</TableHead>
+                      <TableHead className="border">Vai trò</TableHead>
+                      <TableHead className="border">Trạng thái</TableHead>
                       <TableHead className="border text-right">
                         Hành động
                       </TableHead>
@@ -359,7 +410,7 @@ const AccountManagement = () => {
                   <TableBody>
                     {loading ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-6">
+                        <TableCell colSpan={8} className="text-center py-6">
                           Đang tải...
                         </TableCell>
                       </TableRow>
@@ -367,7 +418,7 @@ const AccountManagement = () => {
                       users.map((u, i) => (
                         <TableRow key={u.id} className="hover:bg-gray-50">
                           <TableCell className="border">
-                            {(page + 1) * i + 1}
+                            {page * size + i + 1}
                           </TableCell>
                           <TableCell className="border">{u.name}</TableCell>
                           <TableCell className="border">{u.email}</TableCell>
@@ -377,33 +428,60 @@ const AccountManagement = () => {
                           <TableCell className="border">
                             {u.rank || "—"}
                           </TableCell>
+                          <TableCell className="border">
+                            {u.role || "—"}
+                          </TableCell>
+                          <TableCell className="border">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs ${u.status
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                                }`}
+                            >
+                              {u.status ? "Hiệu lực" : "Vô hiệu hóa"}
+                            </span>
+                          </TableCell>
                           <TableCell className="border text-right space-x-2">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                setSelectedUser(u);
+                                setSelectedUser({
+                                  ...u,
+                                  avatarUrl: "", // Reset avatarUrl để hiển thị ảnh từ keyAvatar
+                                });
                                 setShowEditDialog(true);
                               }}
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-destructive border-destructive"
-                              onClick={() => handleBanUser(u)}
-                            >
-                              <Ban className="w-4 h-4" />
-                            </Button>
+                            {u.status ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive border-destructive"
+                                onClick={() => openConfirmDialog("ban", u)}
+                              >
+                                Vô hiệu
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-green-600 border-green-600"
+                                onClick={() => openConfirmDialog("activate", u)}
+                              >
+                                Kích hoạt
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-6">
-                          {searchQuery || rankFilter
-                            ? `Không tìm thấy kết quả cho "${searchQuery || rankFilter}"`
+                        <TableCell colSpan={8} className="text-center py-6">
+                          {searchQuery || statusFilter !== "all"
+                            ? `Không tìm thấy kết quả`
                             : "Không có tài khoản nào"}
                         </TableCell>
                       </TableRow>
@@ -490,10 +568,10 @@ const AccountManagement = () => {
                   </select>
                 </div>
 
-                {selectedUser.avatarUrl && (
+                {(selectedUser.avatarUrl || selectedUser.keyAvatar) && (
                   <div className="flex flex-col items-center gap-2">
                     <img
-                      src={selectedUser.avatarUrl}
+                      src={selectedUser.avatarUrl || userService.getFileUrl(selectedUser.keyAvatar)}
                       alt="Avatar"
                       className="w-24 h-24 rounded-full object-cover"
                     />
@@ -524,6 +602,56 @@ const AccountManagement = () => {
                 <Button className="w-full" onClick={handleSaveEdit}>
                   Lưu thay đổi
                 </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Xác nhận hành động</DialogTitle>
+              <DialogDescription>
+                {confirmAction?.action === "ban"
+                  ? "Bạn có chắc chắn muốn vô hiệu hóa tài khoản này?"
+                  : "Bạn có chắc chắn muốn kích hoạt lại tài khoản này?"}
+              </DialogDescription>
+            </DialogHeader>
+            {confirmAction && (
+              <div className="space-y-4 py-4">
+                <div className="bg-gray-100 p-4 rounded-md">
+                  <p className="text-sm">
+                    <strong>Tên:</strong> {confirmAction.user.name}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Email:</strong> {confirmAction.user.email}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Rank:</strong> {confirmAction.user.rank || "—"}
+                  </p>
+                </div>
+                <div className="flex gap-3 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowConfirmDialog(false);
+                      setConfirmAction(null);
+                    }}
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    className={
+                      confirmAction.action === "ban"
+                        ? "bg-destructive hover:bg-destructive/90"
+                        : "bg-green-600 hover:bg-green-700"
+                    }
+                    onClick={handleConfirm}
+                  >
+                    {confirmAction.action === "ban"
+                      ? "Vô hiệu hóa"
+                      : "Kích hoạt"}
+                  </Button>
+                </div>
               </div>
             )}
           </DialogContent>
