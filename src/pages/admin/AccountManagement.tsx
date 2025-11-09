@@ -514,7 +514,7 @@ const AccountManagement = () => {
                           <TableHead className="border">Rank</TableHead>
                           <TableHead className="border">Vai trò</TableHead>
                           <TableHead className="border">Trạng thái</TableHead>
-                          <TableHead className="border text-right">
+                          <TableHead className="border">
                             Hành động
                           </TableHead>
                         </TableRow>
@@ -553,7 +553,7 @@ const AccountManagement = () => {
                                   {u.status ? "Hiệu lực" : "Vô hiệu hóa"}
                                 </span>
                               </TableCell>
-                              <TableCell className="border text-right space-x-2">
+                              <TableCell className="border text-left space-x-2">
                                 <Button
                                   variant="outline"
                                   size="sm"
