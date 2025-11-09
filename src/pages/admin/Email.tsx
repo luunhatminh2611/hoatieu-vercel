@@ -28,7 +28,7 @@ const EmailConfig = () => {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState(null);
-  const [formEmail, setFormEmail] = useState({ name: "", email: "" });
+  const [formEmail, setFormEmail] = useState({ name: "", email: "", mailKey: "" });
 
   // Fetch email list
   const fetchEmailConfig = async () => {
@@ -70,7 +70,7 @@ const EmailConfig = () => {
         description: "Đã thêm email nhận thông tin đơn hàng.",
       });
 
-      setFormEmail({ name: "", email: "" });
+      setFormEmail({ name: "", email: "", mailKey: "" });
       setIsCreateOpen(false);
       fetchEmailConfig();
     } catch (error) {
@@ -96,12 +96,30 @@ const EmailConfig = () => {
         return;
       }
 
+      // Nếu là email SEND, validate mailKey
+      if (selectedEmail.type === "SEND" && !formEmail.mailKey) {
+        toast({
+          title: "Thiếu thông tin",
+          description: "Vui lòng nhập Mail Key.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setEditing(true);
-      await emailService.updateEmail({
+      const payload: any = {
         id: selectedEmail.id,
-        ...formEmail,
+        name: formEmail.name,
+        email: formEmail.email,
         type: selectedEmail.type,
-      });
+      };
+
+      // Thêm mailKey nếu là email SEND
+      if (selectedEmail.type === "SEND") {
+        payload.mailKey = formEmail.mailKey;
+      }
+
+      await emailService.updateEmail(payload);
 
       toast({
         title: "Cập nhật thành công",
@@ -123,6 +141,7 @@ const EmailConfig = () => {
 
   // Handle delete email
   const handleDelete = async (item) => {
+    // Không cho xóa email SEND
     if (item.type === "SEND") {
       setIsWarningOpen(true);
       return;
@@ -241,14 +260,11 @@ const EmailConfig = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => {
-                                if (item.type === "SEND") {
-                                  setIsWarningOpen(true);
-                                  return;
-                                }
                                 setSelectedEmail(item);
                                 setFormEmail({
                                   name: item.name,
                                   email: item.email,
+                                  mailKey: item.mailKey || "",
                                 });
                                 setIsEditOpen(true);
                               }}
@@ -299,6 +315,18 @@ const EmailConfig = () => {
                 }
               />
             </div>
+            {selectedEmail?.type === "SEND" && (
+              <div>
+                <Label>Mail Key</Label>
+                <Input
+                  value={formEmail.mailKey}
+                  onChange={(e) =>
+                    setFormEmail({ ...formEmail, mailKey: e.target.value })
+                  }
+                  placeholder="Nhập Mail Key"
+                />
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button onClick={handleEdit} disabled={editing}>
@@ -308,14 +336,14 @@ const EmailConfig = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Modal cảnh báo không cho sửa/xóa mail SEND */}
+      {/* Modal cảnh báo không cho xóa mail SEND */}
       <Dialog open={isWarningOpen} onOpenChange={setIsWarningOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Không thể thao tác</DialogTitle>
+            <DialogTitle>Không thể xóa</DialogTitle>
           </DialogHeader>
           <p>
-            Đây là mail đăng ký dịch vụ gửi mail, vui lòng không xóa hoặc sửa.
+            Đây là mail đăng ký dịch vụ gửi mail, không thể xóa. Bạn chỉ có thể chỉnh sửa thông tin.
           </p>
           <DialogFooter>
             <Button onClick={() => setIsWarningOpen(false)}>Đóng</Button>

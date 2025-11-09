@@ -79,6 +79,37 @@ export const userService = {
         if (!fileName) return null;
         return `${import.meta.env.VITE_API_BASE_URL}/file?fileKey=${fileName}`;
     },
+
+    getAllRanks: async () => {
+        try {
+            const response = await api.get("/rank/true");
+            return response.data.data;
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách rank:", error);
+            throw error;
+        }
+    },
+
+ 
+    createRank: async (rankData) => {
+        try {
+            const response = await api.post("/rank", rankData);
+            return response.data;
+        } catch (error) {
+            console.error("Lỗi khi tạo rank:", error);
+            throw error;
+        }
+    },
+
+    deleteRank: async (rankId) => {
+        try {
+            const response = await api.delete(`/rank/${rankId}`);
+            return response.data;
+        } catch (error) {
+            console.error("Lỗi khi xóa rank:", error);
+            throw error;
+        }
+    },
 };
 
 export default userService;
