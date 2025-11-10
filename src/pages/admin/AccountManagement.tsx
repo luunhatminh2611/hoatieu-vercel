@@ -845,7 +845,6 @@ const AccountManagement = () => {
                   <div className="flex flex-col items-center gap-2">
                     <img
                       src={
-                        selectedUser.avatarUrl ||
                         userService.getFileUrl(selectedUser.keyAvatar)
                       }
                       alt="Avatar"

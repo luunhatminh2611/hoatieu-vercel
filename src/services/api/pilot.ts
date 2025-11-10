@@ -77,8 +77,21 @@ export const userService = {
 
     getFileUrl: (fileName) => {
         if (!fileName) return null;
-        return `${import.meta.env.VITE_API_BASE_URL}/file?fileKey=${fileName}`;
+        const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
+        // Debug log (xóa sau khi fix)
+        console.log("Base URL:", baseUrl);
+        console.log("File key:", fileName);
+
+        // Đảm bảo baseUrl tồn tại
+        if (!baseUrl) {
+            console.error("VITE_API_BASE_URL is not defined");
+            return null;
+        }
+
+        return `${baseUrl}/file?fileKey=${fileName}`;
     },
+
 
     getAllRanks: async () => {
         try {
@@ -90,7 +103,7 @@ export const userService = {
         }
     },
 
- 
+
     createRank: async (rankData) => {
         try {
             const response = await api.post("/rank", rankData);
