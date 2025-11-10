@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import servicePriceService from "@/services/api/service";
+import { Eye, FileText } from "lucide-react";
+import userService from "@/services/api/pilot";
 
 const ServicePriceModal = ({ open, onClose, status, onSuccess, editData }) => {
     const { toast } = useToast();
@@ -13,6 +15,7 @@ const ServicePriceModal = ({ open, onClose, status, onSuccess, editData }) => {
         title: "",
         effectiveDate: "",
         file: null,
+        existingFileKey: null,
     });
     const [loading, setLoading] = useState(false);
 
@@ -29,20 +32,32 @@ const ServicePriceModal = ({ open, onClose, status, onSuccess, editData }) => {
             setFormData({
                 title: editData.title || "",
                 effectiveDate: editData.effectiveDate || "",
-                file: null, // file chỉ chọn lại nếu muốn thay
+                file: null,
+                existingFileKey: editData.key, // ← Lấy từ key
             });
         } else {
-            setFormData({ title: "", effectiveDate: "", file: null });
+            setFormData({ title: "", effectiveDate: "", file: null, existingFileKey: null });
         }
     }, [editData]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!formData.title || !formData.effectiveDate || !formData.file) {
+        // ✅ Validation
+        if (!formData.title || !formData.effectiveDate) {
             toast({
                 title: "Thiếu thông tin",
-                description: "Vui lòng nhập đầy đủ các trường bắt buộc.",
+                description: "Vui lòng nhập tiêu đề và ngày áp dụng.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        // ✅ Chỉ bắt buộc file khi tạo mới
+        if (!editData && !formData.file) {
+            toast({
+                title: "Thiếu file",
+                description: "Vui lòng chọn file đính kèm.",
                 variant: "destructive",
             });
             return;
@@ -51,15 +66,26 @@ const ServicePriceModal = ({ open, onClose, status, onSuccess, editData }) => {
         try {
             setLoading(true);
 
-            // ✅ Tạo FormData
             const payload = new FormData();
             payload.append("title", formData.title);
             payload.append("effectiveDate", formData.effectiveDate);
             payload.append("status", status);
-            if (formData.file) payload.append("file", formData.file);
+
+            // ✅ Chỉ gửi file nếu user chọn file mới
+            if (formData.file) {
+                payload.append("file", formData.file);
+            }
 
             if (editData?.id) {
                 payload.append("id", editData.id);
+            }
+
+            // Debug log
+            console.log("=== Payload Debug ===");
+            console.log("Mode:", editData ? "UPDATE" : "CREATE");
+            console.log("Has new file:", !!formData.file);
+            for (let pair of payload.entries()) {
+                console.log(pair[0], typeof pair[1] === 'object' ? pair[1].name : pair[1]);
             }
 
             await servicePriceService.createServicePrice(payload);
@@ -68,14 +94,16 @@ const ServicePriceModal = ({ open, onClose, status, onSuccess, editData }) => {
                 title: editData ? "Cập nhật thành công" : "Tạo mới thành công",
                 description: editData ? "Hồ sơ đã được cập nhật" : "Hồ sơ mới đã được thêm",
             });
-            setFormData({ title: "", effectiveDate: "", file: null });
+
+            setFormData({ title: "", effectiveDate: "", file: null, existingFileKey: null });
             onClose();
             onSuccess?.();
         } catch (error) {
-            console.error("Lỗi API:", error);
+            console.error("❌ Lỗi API:", error);
+            console.error("Response:", error.response?.data);
             toast({
                 title: "Lỗi",
-                description: error?.response?.data?.message || "Không thể thêm hồ sơ.",
+                description: error?.response?.data?.message || "Không thể lưu hồ sơ.",
                 variant: "destructive",
             });
         } finally {
@@ -112,8 +140,41 @@ const ServicePriceModal = ({ open, onClose, status, onSuccess, editData }) => {
                     </div>
 
                     <div>
-                        <Label>Tập tin đính kèm (nếu có)</Label>
-                        <Input name="file" type="file" onChange={handleChange} />
+                        <Label>Tập tin đính kèm</Label>
+
+                        {/* ✅ Hiển thị file cũ */}
+                        {formData.existingFileKey && !formData.file && (
+                            <div className="mb-2 p-3 bg-blue-50 border border-blue-200 rounded flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <FileText className="w-4 h-4 text-blue-600" />
+                                    <span className="text-sm">File hiện tại: <strong>{formData.existingFileKey.split('/').pop()}</strong></span>
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => window.open(userService.getFileUrl(formData.existingFileKey), "_blank")}
+                                    className="text-blue-600 hover:text-blue-800"
+                                >
+                                    <Eye className="w-4 h-4 mr-1" />
+                                    Xem
+                                </Button>
+                            </div>
+                        )}
+
+                        {/* ✅ Input chọn file mới */}
+                        <Input
+                            name="file"
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={handleChange}
+                        />
+
+                        <p className="text-xs text-muted-foreground mt-1">
+                            {editData
+                                ? "Để trống nếu không muốn thay đổi file"
+                                : "File là bắt buộc (PDF, JPG, PNG - tối đa 10MB)"}
+                        </p>
                     </div>
 
                     <DialogFooter>

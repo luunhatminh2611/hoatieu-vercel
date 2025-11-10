@@ -28,7 +28,7 @@ const About = () => {
             <div>
               <h2 className="text-3xl font-bold text-primary mb-6">Về Chúng Tôi</h2>
               <p className="text-muted-foreground mb-4 leading-relaxed">
-                Công ty Cổ phần Hoa Tiêu Hàng Hải-TKV được thành lập. ngày 4 tháng 4 năm 2006. Năm 2008, Công ty chuyển sang hoạt động mô
+                Công ty Cổ phần Hoa Tiêu Hàng Hải-TKV được thành lập ngày 4 tháng 4 năm 2006. Năm 2008, Công ty chuyển sang hoạt động mô
                  hình TNHH 1TV 100% vốn Nhà nước, hoạt động dịch vụ hoa tiêu hàng hải là dịch vụ công ích và kinh doanh có điều kiện theo 
                  quy định tại Nghị định số 173/2007/NĐ-CP ngày 28/11/2007 của Chính phủ, nay là Nghị định số 70/2016/NĐ-CP ngày 01/07/2016 của Chính phủ về điều kiện cung cấp dịch vụ đảm bảo an toàn hàng hải.
               </p>
@@ -59,7 +59,7 @@ const About = () => {
               <Card className="text-center">
                 <CardContent className="pt-6">
                   <Users className="w-12 h-12 text-primary mx-auto mb-4" />
-                  <div className="text-4xl font-bold text-primary mb-2">25+</div>
+                  <div className="text-xl sm:text-4xl font-bold text-primary mb-2">25+</div>
                   <p className="text-muted-foreground">Năm kinh nghiệm</p>
                 </CardContent>
               </Card>
@@ -67,7 +67,7 @@ const About = () => {
               <Card className="text-center">
                 <CardContent className="pt-6">
                   <Anchor className="w-12 h-12 text-primary mx-auto mb-4" />
-                  <div className="text-4xl font-bold text-primary mb-2">50+</div>
+                  <div className="text-xl sm:text-4xl font-bold text-primary mb-2">50+</div>
                   <p className="text-muted-foreground">Hoa tiêu chuyên nghiệp</p>
                 </CardContent>
               </Card>
@@ -75,7 +75,7 @@ const About = () => {
               <Card className="text-center">
                 <CardContent className="pt-6">
                   <Target className="w-12 h-12 text-primary mx-auto mb-4" />
-                  <div className="text-4xl font-bold text-primary mb-2">10,000+</div>
+                  <div className="text-xl sm:text-4xl font-bold text-primary mb-2">10,000+</div>
                   <p className="text-muted-foreground">Chuyến tàu thành công</p>
                 </CardContent>
               </Card>
@@ -83,7 +83,7 @@ const About = () => {
               <Card className="text-center">
                 <CardContent className="pt-6">
                   <Award className="w-12 h-12 text-primary mx-auto mb-4" />
-                  <div className="text-4xl font-bold text-primary mb-2">100%</div>
+                  <div className="text-xl sm:text-4xl font-bold text-primary mb-2">100%</div>
                   <p className="text-muted-foreground">An toàn tuyệt đối</p>
                 </CardContent>
               </Card>

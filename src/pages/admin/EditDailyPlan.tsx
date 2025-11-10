@@ -119,7 +119,7 @@ const EditPilotPlan = () => {
                 description: "Không thể tải thông tin kế hoạch",
                 variant: "destructive",
             });
-            navigate("/admin/pilot-plans");
+            navigate("/admin/schedule");
         } finally {
             setLoadingPlan(false);
         }

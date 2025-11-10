@@ -91,7 +91,7 @@ const Navbar = () => {
           <img src={logoHeader} alt="Logo" className="w-14 h-14 sm:w-20 sm:h-20" />
           <span className="flex flex-col gap-1">
             <div className="text-base sm:text-2xl font-bold text-center">CÔNG TY CỔ PHẦN HOA TIÊU HÀNG HẢI - TKV</div>
-            <div className="text-base sm:text-xs font-bold text-center">Tầng 10, Trung tâm điều hành sản xuất tại Quảng Ninh -Tập đoàn Công nghiệp Than Khoáng Sản Việt Nam ( 95A, Lê Thánh Tông,Phường Hồng Gai,Tỉnh Quảng Ninh)</div>
+            <div className="text-base sm:text-xs font-bold text-center">Tầng 10, Trung tâm điều hành sản xuất tại Quảng Ninh - Tập đoàn Công nghiệp Than Khoáng Sản Việt Nam (95A, Lê Thánh Tông, Phường Hồng Gai, Tỉnh Quảng Ninh)</div>
             <div className="flex flex-col sm:flex-row items-center sm:items-end sm:justify-center gap-2 sm:gap-4 text-primary-foreground text-sm sm:text-xs sm:text-center font-medium">
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-accent" />

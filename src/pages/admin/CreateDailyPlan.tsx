@@ -585,7 +585,7 @@ const CreatePilotPlan = () => {
                                                 <Button
                                                     type="button"
                                                     variant="outline"
-                                                    onClick={() => navigate("/pilot-plans")}
+                                                    onClick={() => navigate("/admin/schedule")}
                                                     disabled={loading}
                                                 >
                                                     Hủy
