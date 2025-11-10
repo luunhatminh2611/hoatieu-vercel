@@ -77,7 +77,7 @@ export const userService = {
 
     getFileUrl: (fileName) => {
         if (!fileName) return null;
-        const baseUrl = import.meta.env.VITE_API_BASE_URL;
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || "https://pilot-app-3m5q.onrender.com/api";
 
         // Debug log (xóa sau khi fix)
         console.log("Base URL:", baseUrl);
