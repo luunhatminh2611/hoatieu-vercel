@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileText, Download, Pencil, Trash2, Plus, Search, Eye } from "lucide-react";
+import { FileText, Pencil, Trash2, Plus, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { servicePriceService } from "@/services/api/service";
+import userService from "@/services/api/pilot";
 import ServicePriceModal from "@/components/CreateFolder";
 
 const TenderInfo = () => {
@@ -36,7 +37,7 @@ const TenderInfo = () => {
             const params = {
                 page: page - 1,
                 limit,
-                search,
+                keyword: search,
                 status: "OFFER",
                 sort: "desc",
             };
@@ -60,20 +61,49 @@ const TenderInfo = () => {
         setOpenModal(true);
     };
 
-    const handleDelete = (id) => {
-        toast({ title: "Đã xóa", description: `Xóa hồ sơ ID: ${id}` });
-    };
+    const handleDelete = async (id) => {
+        if (!window.confirm("Bạn có chắc chắn muốn xóa hồ sơ này?")) return;
 
-    const handleDownload = (fileName) => {
-        toast({
-            title: "Đang tải xuống",
-            description: `Đang tải file: ${fileName}`,
-        });
+        try {
+            await servicePriceService.deleteService(id);
+
+            toast({
+                title: "Đã xóa thành công",
+                description: `Hồ sơ ID: ${id} đã được xóa.`,
+            });
+
+            fetchServices();
+        } catch (error) {
+            console.error("Lỗi khi xóa:", error);
+            toast({
+                title: "Lỗi khi xóa",
+                description: error?.response?.data?.message || "Không thể xóa hồ sơ.",
+                variant: "destructive",
+            });
+        }
     };
 
     const handleAddNew = () => {
         setEditData(null);
         setOpenModal(true);
+    };
+
+    // ⭐ Sử dụng userService.getFileUrl để lấy URL file
+    const handleViewFile = (item) => {
+        const fileKey = item.key || item.fileUrl;
+
+        if (!fileKey) {
+            toast({
+                title: "Không có tệp đính kèm",
+                description: "Hồ sơ này chưa có file để xem.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const fileUrl = userService.getFileUrl(fileKey);
+        console.log("Opening file:", fileUrl); // Debug
+        window.open(fileUrl, "_blank");
     };
 
     return (
@@ -117,12 +147,12 @@ const TenderInfo = () => {
                             <Table className="border border-gray-200 rounded-md">
                                 <TableHeader className="bg-gray-100">
                                     <TableRow>
-                                        <TableHead className="border border-gray-200 w-[80px]">STT</TableHead>
+                                        <TableHead className="border border-gray-200 w-[80px] text-center">STT</TableHead>
                                         <TableHead className="border border-gray-200">Tên Dịch Vụ</TableHead>
-                                        <TableHead className="border border-gray-200 w-[150px]">Ngày Áp Dụng</TableHead>
+                                        <TableHead className="border border-gray-200 w-[150px] text-center">Ngày Áp Dụng</TableHead>
                                         <TableHead className="border border-gray-200 w-[120px] text-center">Tải Về</TableHead>
                                         {user?.role === "ADMIN" && (
-                                            <TableHead className="border border-gray-200 text-center">Hành Động</TableHead>
+                                            <TableHead className="border border-gray-200 w-[150px] text-center">Hành Động</TableHead>
                                         )}
                                     </TableRow>
                                 </TableHeader>
@@ -137,24 +167,18 @@ const TenderInfo = () => {
                                     ) : services.length > 0 ? (
                                         services.map((item, index) => (
                                             <TableRow key={item.id} className="border border-gray-200">
-                                                <TableCell className="text-center border border-gray-200 font-medium">{(page - 1) * limit + index + 1}</TableCell>
+                                                <TableCell className="text-center border border-gray-200 font-medium">
+                                                    {(page - 1) * limit + index + 1}
+                                                </TableCell>
                                                 <TableCell className="border border-gray-200">{item.title}</TableCell>
-                                                <TableCell className="border border-gray-200">{item.effectiveDate || "-"}</TableCell>
+                                                <TableCell className="border border-gray-200 text-center">
+                                                    {item.effectiveDate || "-"}
+                                                </TableCell>
                                                 <TableCell className="border border-gray-200 text-center">
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        onClick={() => {
-                                                            if (item.fileUrl) {
-                                                                window.open(item.fileUrl, "_blank");
-                                                            } else {
-                                                                toast({
-                                                                    title: "Không có tệp đính kèm",
-                                                                    description: "Hồ sơ này chưa có file để xem.",
-                                                                    variant: "destructive",
-                                                                });
-                                                            }
-                                                        }}
+                                                        onClick={() => handleViewFile(item)}
                                                         className="text-accent hover:text-accent"
                                                     >
                                                         <Eye className="w-5 h-5" />
@@ -162,7 +186,7 @@ const TenderInfo = () => {
                                                 </TableCell>
                                                 {user?.role === "ADMIN" && (
                                                     <TableCell className="border border-gray-200 flex justify-center gap-2">
-                                                        <Button variant="ghost" size="sm" onClick={() => handleEdit(item.id)}>
+                                                        <Button variant="ghost" size="sm" onClick={() => handleEdit(item)}>
                                                             <Pencil className="w-4 h-4 text-primary" />
                                                         </Button>
                                                         <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
@@ -174,7 +198,7 @@ const TenderInfo = () => {
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={6} className="text-center text-gray-500 py-6">
+                                            <TableCell colSpan={user?.role === "ADMIN" ? 5 : 4} className="text-center text-gray-500 py-6">
                                                 Không có dữ liệu
                                             </TableCell>
                                         </TableRow>
@@ -183,7 +207,7 @@ const TenderInfo = () => {
                             </Table>
 
                             {/* Pagination */}
-                            <div className="flex justify-end items-center mt-6 gap-2">
+                            <div className="flex justify-center items-center mt-6 gap-2">
                                 <Button
                                     variant="outline"
                                     size="sm"

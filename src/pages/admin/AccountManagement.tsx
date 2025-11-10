@@ -132,7 +132,7 @@ const AccountManagement = () => {
 
   // Create user
   const handleCreateUser = async () => {
-    if (!newUser.name || !newUser.email || !newUser.phone || !newUser.rankId) {
+    if (!newUser.name || !newUser.email || !newUser.phone || !newUser.rankId || !newUser.role) {
       toast({
         title: "Thiếu thông tin",
         description: "Vui lòng nhập đầy đủ thông tin",
@@ -145,6 +145,15 @@ const AccountManagement = () => {
       toast({
         title: "Số điện thoại không hợp lệ",
         description: "Số điện thoại phải có ít nhất 10 chữ số.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email)) {
+      toast({
+        title: "Email không hợp lệ",
+        description: "Vui lòng nhập email đúng định dạng.",
         variant: "destructive",
       });
       return;
@@ -546,8 +555,8 @@ const AccountManagement = () => {
                               <TableCell className="border">
                                 <span
                                   className={`px-2 py-1 rounded-full text-xs ${u.status
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-red-100 text-red-800"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-red-100 text-red-800"
                                     }`}
                                 >
                                   {u.status ? "Hiệu lực" : "Vô hiệu hóa"}

@@ -4,11 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileText, Download, Plus, Pencil, Trash2, Eye } from "lucide-react";
+import { FileText, Plus, Pencil, Trash2, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
 import { servicePriceService } from "@/services/api/service";
+import userService from "@/services/api/pilot";
 import ServicePriceModal from "@/components/CreateFolder";
 
 const InvestorRelations = () => {
@@ -55,25 +56,54 @@ const InvestorRelations = () => {
         fetchPriceList();
     }, [page, keyword]);
 
-    const handleDownload = (fileName) => {
-        toast({
-            title: "Đang tải xuống",
-            description: `Đang tải tài liệu: ${fileName}`,
-        });
-    };
-
     const handleEdit = (item) => {
         setEditData(item);
         setOpenModal(true);
     };
 
-    const handleDelete = (id) => {
-        toast({ title: "Đã xóa", description: `Xóa hồ sơ ID: ${id}` });
+    const handleDelete = async (id) => {
+        if (!window.confirm("Bạn có chắc chắn muốn xóa hồ sơ này?")) return;
+
+        try {
+            await servicePriceService.deleteService(id);
+
+            toast({
+                title: "Đã xóa thành công",
+                description: `Hồ sơ ID: ${id} đã được xóa.`,
+            });
+
+            fetchPriceList();
+        } catch (error) {
+            console.error("Lỗi khi xóa:", error);
+            toast({
+                title: "Lỗi khi xóa",
+                description: error?.response?.data?.message || "Không thể xóa hồ sơ.",
+                variant: "destructive",
+            });
+        }
     };
 
     const handleAddNew = () => {
         setEditData(null);
         setOpenModal(true);
+    };
+
+    // ⭐ Sử dụng userService.getFileUrl để lấy URL file
+    const handleViewFile = (doc) => {
+        const fileKey = doc.key || doc.fileUrl;
+
+        if (!fileKey) {
+            toast({
+                title: "Không có tệp đính kèm",
+                description: "Hồ sơ này chưa có file để xem.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const fileUrl = userService.getFileUrl(fileKey);
+        console.log("Opening file:", fileUrl); // Debug
+        window.open(fileUrl, "_blank");
     };
 
     return (
@@ -163,17 +193,7 @@ const InvestorRelations = () => {
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        onClick={() => {
-                                                            if (doc.fileUrl) {
-                                                                window.open(doc.fileUrl, "_blank");
-                                                            } else {
-                                                                toast({
-                                                                    title: "Không có tệp đính kèm",
-                                                                    description: "Hồ sơ này chưa có file để xem.",
-                                                                    variant: "destructive",
-                                                                });
-                                                            }
-                                                        }}
+                                                        onClick={() => handleViewFile(doc)}
                                                         className="text-accent hover:text-accent"
                                                     >
                                                         <Eye className="w-5 h-5" />

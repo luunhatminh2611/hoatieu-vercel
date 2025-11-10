@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
 import { servicePriceService } from "@/services/api/service";
+import userService from "@/services/api/pilot";
 import ServicePriceModal from "@/components/CreateFolder";
 
 const PriceList = () => {
@@ -55,13 +56,6 @@ const PriceList = () => {
     fetchPriceList();
   }, [page, keyword]);
 
-  const handleDownload = (fileName) => {
-    toast({
-      title: "Đang tải xuống",
-      description: `Đang tải tài liệu: ${fileName}`,
-    });
-  };
-
   const handleEdit = (item) => {
     setEditData(item);
     setOpenModal(true);
@@ -92,6 +86,24 @@ const PriceList = () => {
   const handleAddNew = () => {
     setEditData(null);
     setOpenModal(true);
+  };
+
+  // ⭐ Sử dụng userService.getFileUrl để lấy URL file
+  const handleViewFile = (doc) => {
+    const fileKey = doc.key || doc.fileUrl;
+    
+    if (!fileKey) {
+      toast({
+        title: "Không có tệp đính kèm",
+        description: "Hồ sơ này chưa có file để xem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const fileUrl = userService.getFileUrl(fileKey);
+    console.log("Opening file:", fileUrl); // Debug
+    window.open(fileUrl, "_blank");
   };
 
   return (
@@ -181,17 +193,7 @@ const PriceList = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => {
-                              if (doc.fileUrl) {
-                                window.open(doc.fileUrl, "_blank");
-                              } else {
-                                toast({
-                                  title: "Không có tệp đính kèm",
-                                  description: "Hồ sơ này chưa có file để xem.",
-                                  variant: "destructive",
-                                });
-                              }
-                            }}
+                            onClick={() => handleViewFile(doc)}
                             className="text-accent hover:text-accent"
                           >
                             <Eye className="w-5 h-5" />

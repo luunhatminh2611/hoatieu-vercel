@@ -43,7 +43,7 @@ export const pilotPlanService = {
 
     updatePlan: async (planData) => {
         try {
-            const response = await api.put("/daily-pilot", planData);
+            const response = await api.post("/daily-pilot", planData);
             return response.data;
         } catch (error) {
             console.error("Lỗi khi cập nhật kế hoạch hoa tiêu:", error);
