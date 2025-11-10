@@ -39,7 +39,7 @@ const ServicePriceModal = ({ open, onClose, status, onSuccess, editData }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!formData.title || !formData.effectiveDate) {
+        if (!formData.title || !formData.effectiveDate || !formData.file) {
             toast({
                 title: "Thiếu thông tin",
                 description: "Vui lòng nhập đầy đủ các trường bắt buộc.",
