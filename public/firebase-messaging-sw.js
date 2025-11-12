@@ -1,7 +1,7 @@
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
 
-console.log("🔧 [SW] Service Worker loading...");
+// console.log("🔧 [SW] Service Worker loading...");
 
 firebase.initializeApp({
   apiKey: "AIzaSyBHVrVLkhFNuzev0AUTo4xnT6Hizx5JkIM",
@@ -13,23 +13,32 @@ firebase.initializeApp({
   measurementId: "G-WHSMMB0815"
 });
 
-console.log("✅ [SW] Firebase initialized");
-
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage((payload) => {
-  console.log("[SW] Background message:", payload);
-  if (payload.data) {
-    console.log("[SW] Bỏ qua vì FCM đã tự hiển thị notification.");
-    return;
-  }
+// console.log("✅ [SW] Firebase initialized & messaging ready");
 
-  // Chỉ xử lý message kiểu data
-  const title = payload.data?.title || "Thông báo";
+// Cẩn thận: một số bản FCM tự hiển thị notification nếu payload có field 'title' ở cấp cao.
+// Để chặn hành vi đó, ta ép Firebase chỉ xử lý bằng tay.
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+
+  const payload = event.data.json();
+  // console.log("[SW] Custom push handler payload:", payload);
+
+  // FCM có thể gói data vào .data hoặc ở root
+  const data = payload.data || payload;
+
+  const title = data.title || "Thông báo mới";
   const options = {
-    body: payload.data?.body || "",
+    body: data.body || "",
     icon: "/icons/logo-mobile.png",
+    data,
   };
 
-  self.registration.showNotification(title, options);
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Giữ lại để tương thích
+messaging.onBackgroundMessage((payload) => {
+  console.log("[SW] onBackgroundMessage:", payload);
 });

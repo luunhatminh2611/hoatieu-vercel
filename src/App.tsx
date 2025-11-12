@@ -50,13 +50,33 @@ const App = () => {
   useEffect(() => {
     const init = async () => {
       await initializeMessaging();
+
+      // 🟡 Xin quyền hiển thị thông báo (chỉ cần 1 lần)
+      if (Notification.permission !== "granted") {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+          console.warn("🚫 Người dùng không cho phép hiển thị thông báo.");
+          return;
+        }
+      }
+
       console.log("📡 [App] Đăng ký onMessageListener (một lần duy nhất)");
 
+      // 🟢 Lắng nghe tin nhắn foreground (app đang mở)
       onMessageListener((payload) => {
         console.log("✅ [App] Received foreground message:", payload);
-        // Xử lý hiển thị notification ở đây
+
+        const title = payload.data?.title || "Thông báo";
+        const options = {
+          body: payload.data?.body || "",
+          icon: "/icons/logo-mobile.png",
+        };
+
+        // Hiển thị notification thủ công
+        new Notification(title, options);
       });
     };
+
     init();
   }, []);
 
