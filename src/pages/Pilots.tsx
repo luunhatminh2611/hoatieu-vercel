@@ -14,7 +14,7 @@ const Pilots = () => {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [size] = useState(9); // số phần tử mỗi trang
+  const [size] = useState(50); // số phần tử mỗi trang
 
   // 🔹 Gọi API từ BE (có tìm kiếm + phân trang)
   const fetchPilots = async () => {
@@ -27,7 +27,8 @@ const Pilots = () => {
         status: true,
         role: "",
         sort: "DESC",
-        sortBy: "rank"
+        sortBy: "rank",
+        show: false
       });
 
       setPilots(res.content || []);
@@ -44,7 +45,6 @@ const Pilots = () => {
     fetchPilots();
   }, [page, searchTerm]);
 
-  // 🔍 Gọi BE khi user ngừng gõ 0.5s
   useEffect(() => {
     const delay = setTimeout(() => {
       setPage(0);

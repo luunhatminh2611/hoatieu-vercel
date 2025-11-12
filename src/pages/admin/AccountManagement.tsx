@@ -603,10 +603,11 @@ const AccountManagement = () => {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => {
+                                    const currentRank = ranks.find(r => r.name === u.rank);
                                     setSelectedUser({
                                       ...u,
                                       avatarUrl: "",
-                                      rankId: u.rankId || "",
+                                      rankId: currentRank?.id || u.rankId || "",
                                     });
                                     setShowEditDialog(true);
                                   }}
@@ -883,8 +884,8 @@ const AccountManagement = () => {
                     className="w-full border rounded-md px-3 py-2"
                   >
                     <option value="">-- Chọn vai trò --</option>
-                    <option value="ADMIN">ADMIN</option>
-                    <option value="PILOT">PILOT</option>
+                    <option value="ADMIN">Quản lý</option>
+                    <option value="PILOT">Hoa tiêu</option>
                   </select>
                 </div>
 
