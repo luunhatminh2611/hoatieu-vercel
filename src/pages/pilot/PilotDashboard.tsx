@@ -69,6 +69,15 @@ const PilotDashboard = () => {
     }
   };
 
+  const getStatusDisplay = (status) => {
+    const statusMap = {
+      CONFIRMED: { text: "Đã xác nhận", variant: "default" },
+      REJECTED: { text: "Đã từ chối", variant: "destructive" },
+      PENDING: { text: "Đang chờ", variant: "warning" }
+    };
+    return statusMap[status] || { text: status || "Đang chờ", variant: "warning" };
+  };
+
   // Handle change password
   const handleChangePassword = async () => {
     try {
@@ -310,8 +319,8 @@ const PilotDashboard = () => {
                                 <h3 className="font-semibold text-base md:text-lg">
                                   {task.shipName}
                                 </h3>
-                                <Badge variant="warning" className="text-xs">
-                                  {task.statusPilot || "Đang chờ"}
+                                <Badge variant={getStatusDisplay(task.statusPilot).variant} className="text-xs">
+                                  {getStatusDisplay(task.statusPilot).text}
                                 </Badge>
                               </div>
                               <div className="text-xs md:text-sm text-muted-foreground space-y-1">
@@ -394,8 +403,8 @@ const PilotDashboard = () => {
                                 <h3 className="font-semibold text-base md:text-lg">
                                   {task.shipName}
                                 </h3>
-                                <Badge variant="default" className="text-xs">
-                                  {task.statusPilot || "Đã lên kế hoạch"}
+                                <Badge variant={getStatusDisplay(task.statusPilot).variant} className="text-xs">
+                                  {getStatusDisplay(task.statusPilot).text}
                                 </Badge>
                               </div>
                               <div className="text-xs md:text-sm text-muted-foreground space-y-1">
@@ -492,10 +501,10 @@ const PilotDashboard = () => {
                           </p>
                           <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                             <span className={`px-3 py-1 rounded-full text-xs md:text-sm font-semibold ${usersDetail?.role === "ADMIN"
-                                ? "bg-blue-100 text-blue-600"
-                                : usersDetail?.role === "PILOT"
-                                  ? "bg-green-100 text-green-600"
-                                  : "bg-gray-100 text-gray-600"
+                              ? "bg-blue-100 text-blue-600"
+                              : usersDetail?.role === "PILOT"
+                                ? "bg-green-100 text-green-600"
+                                : "bg-gray-100 text-gray-600"
                               }`}>
                               {usersDetail?.role || "N/A"}
                             </span>

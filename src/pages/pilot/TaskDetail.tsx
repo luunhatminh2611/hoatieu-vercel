@@ -17,6 +17,15 @@ const TaskDetail = () => {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
 
+  const getStatusText = (status) => {
+    const statusMap = {
+      CONFIRMED: "Đã xác nhận",
+      REJECTED: "Đã từ chối",
+      PENDING: "Đang chờ"
+    };
+    return statusMap[status] || status || "Không xác định";
+  };
+
   // --- Lấy chi tiết nhiệm vụ ---
   useEffect(() => {
     const fetchTask = async () => {
@@ -145,7 +154,7 @@ const TaskDetail = () => {
                   className={`${statusColor[currentStatus] || "bg-gray-100 text-gray-800"
                     } text-xs`}
                 >
-                  {currentStatus || "Không xác định"}
+                  {getStatusText(currentStatus)}
                 </Badge>
               )}
             </div>
