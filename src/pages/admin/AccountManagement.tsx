@@ -57,6 +57,8 @@ const AccountManagement = () => {
     index: 0,
     status: true,
   });
+  const [showEditRankDialog, setShowEditRankDialog] = useState(false);
+  const [editingRank, setEditingRank] = useState(null);
 
   const [newUser, setNewUser] = useState({
     name: "",
@@ -311,6 +313,40 @@ const AccountManagement = () => {
     } catch (error) {
       toast({
         title: "Lỗi tạo thứ hạng",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateRank = async () => {
+    if (!editingRank.name) {
+      toast({
+        title: "Thiếu thông tin",
+        description: "Vui lòng nhập tên thứ hạng",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await userService.createRank({
+        id: editingRank.id,
+        name: editingRank.name,
+        index: editingRank.index,
+        status: editingRank.status
+      });
+
+      toast({
+        title: "Thành công",
+        description: `Đã cập nhật thứ hạng ${editingRank.name}`,
+      });
+
+      setShowEditRankDialog(false);
+      setEditingRank(null);
+      fetchRanks();
+    } catch (error) {
+      toast({
+        title: "Lỗi cập nhật thứ hạng",
         variant: "destructive",
       });
     }
@@ -720,7 +756,7 @@ const AccountManagement = () => {
                           <TableHead className="border">Tên thứ hạng</TableHead>
                           <TableHead className="border">Vị trí (Index)</TableHead>
                           <TableHead className="border">Trạng thái</TableHead>
-                          <TableHead className="border text-right">
+                          <TableHead className="border">
                             Hành động
                           </TableHead>
                         </TableRow>
@@ -743,7 +779,18 @@ const AccountManagement = () => {
                                   Hiệu lực
                                 </span>
                               </TableCell>
-                              <TableCell className="border text-right">
+                              <TableCell className="border">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="mr-2"
+                                  onClick={() => {
+                                    setEditingRank(rank);
+                                    setShowEditRankDialog(true);
+                                  }}
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -927,6 +974,58 @@ const AccountManagement = () => {
                       : "Kích hoạt"}
                   </Button>
                 </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showEditRankDialog} onOpenChange={setShowEditRankDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Chỉnh sửa thứ hạng</DialogTitle>
+              <DialogDescription>
+                Cập nhật thông tin thứ hạng
+              </DialogDescription>
+            </DialogHeader>
+            {editingRank && (
+              <div className="space-y-3 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editRankName">Tên thứ hạng</Label>
+                  <Input
+                    id="editRankName"
+                    placeholder="VD: Hạng Vàng"
+                    value={editingRank.name}
+                    onChange={(e) =>
+                      setEditingRank({ ...editingRank, name: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editRankIndex">
+                    Vị trí hiển thị (index)
+                  </Label>
+                  <Input
+                    id="editRankIndex"
+                    type="number"
+                    placeholder="0"
+                    value={editingRank.index}
+                    onChange={(e) =>
+                      setEditingRank({
+                        ...editingRank,
+                        index: parseInt(e.target.value) || 0,
+                      })
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Số càng nhỏ (0) sẽ hiển thị trước
+                  </p>
+                </div>
+                <Button
+                  className="w-full"
+                  onClick={handleUpdateRank}
+                >
+                  Lưu thay đổi
+                </Button>
               </div>
             )}
           </DialogContent>
