@@ -47,34 +47,16 @@ import { authService } from "./services/api";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const isListenerRegistered = useRef(false); // ✅ Dùng ref thay vì state
-
   useEffect(() => {
-    console.log("🔄 [App] useEffect chạy");
-
-    if (isListenerRegistered.current) {
-      console.log("⚠️ [App] Listener already registered, skipping");
-      return;
-    }
-
     const init = async () => {
-      try {
-        console.log("🚀 [App] Bắt đầu init Firebase");
-        await initializeMessaging();
+      await initializeMessaging();
+      console.log("📡 [App] Đăng ký onMessageListener (một lần duy nhất)");
 
-        console.log("📡 [App] Đăng ký onMessageListener");
-        onMessageListener()
-          .then((payload) => {
-            console.log("✅ [App] Received foreground message:", payload);
-          })
-          .catch((err) => console.error("❌ [App] onMessage error:", err));
-
-        isListenerRegistered.current = true; // ✅ Đánh dấu đã đăng ký
-      } catch (error) {
-        console.error("❌ [App] Lỗi FCM:", error);
-      }
+      onMessageListener((payload) => {
+        console.log("✅ [App] Received foreground message:", payload);
+        // Xử lý hiển thị notification ở đây
+      });
     };
-
     init();
   }, []);
 

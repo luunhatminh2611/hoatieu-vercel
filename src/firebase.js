@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, onMessage, isSupported } from "firebase/messaging";
 
+// --- Cấu hình Firebase ---
 const firebaseConfig = {
   apiKey: "AIzaSyBHVrVLkhFNuzev0AUTo4xnT6Hizx5JkIM",
   authDomain: "hoa-tieu-app.firebaseapp.com",
@@ -11,14 +12,18 @@ const firebaseConfig = {
   measurementId: "G-WHSMMB0815",
 };
 
+// --- Khởi tạo app ---
 const app = initializeApp(firebaseConfig);
 
+// --- Biến toàn cục ---
 let messaging = null;
-let isInitialized = false; // ✅ Thêm flag để tránh init nhiều lần
+let isInitialized = false;
+let listenerAttached = false;
+let unsubscribe = null;
 
 export const initializeMessaging = async () => {
   console.log("🔍 [Firebase] initializeMessaging called, isInitialized:", isInitialized);
-  
+
   if (isInitialized) {
     console.log("⚠️ [Firebase] Already initialized, skipping");
     return messaging;
@@ -27,27 +32,30 @@ export const initializeMessaging = async () => {
   try {
     const supported = await isSupported();
     console.log("🔍 [Firebase] isSupported:", supported);
-    
-    if (supported) {
-      messaging = getMessaging(app);
-      isInitialized = true;
-      console.log("✅ [Firebase] Messaging initialized");
-      return messaging;
-    } else {
-      console.warn("⚠️ [Firebase] Not supported in this browser");
+
+    if (!supported) {
+      console.warn("⚠️ [Firebase] Messaging not supported in this browser");
       return null;
     }
+
+    messaging = getMessaging(app);
+    isInitialized = true;
+    console.log("✅ [Firebase] Messaging initialized");
+    return messaging;
   } catch (error) {
-    console.error("❌ [Firebase] Error initializing:", error);
+    console.error("❌ [Firebase] Error initializing Firebase Messaging:", error);
     return null;
   }
 };
 
+/**
+ * ✅ Yêu cầu cấp token FCM (lấy token để gửi thông báo)
+ */
 export const requestForToken = async () => {
   console.log("🔑 [Firebase] requestForToken called");
-  
+
   if (!messaging) {
-    console.warn("⚠️ [Firebase] Messaging not initialized — wait for initializeMessaging()");
+    console.warn("⚠️ [Firebase] Messaging not initialized yet");
     return null;
   }
 
@@ -55,37 +63,53 @@ export const requestForToken = async () => {
     const token = await getToken(messaging, {
       vapidKey: "BD3yyPQCbGXaVncyP_yvEp4VpFGMcbtDJC-_qpi5uxJnJmMpGCa-03rp-66rMZv0gEszrczjCD6ewePB_fTnibw",
     });
+
     if (token) {
       console.log("✅ [Firebase] FCM Token:", token);
       return token;
     } else {
-      console.warn("⚠️ [Firebase] No FCM registration token available");
+      console.warn("⚠️ [Firebase] No registration token available");
+      return null;
     }
-  } catch (err) {
-    console.error("❌ [Firebase] Error retrieving FCM token:", err);
+  } catch (error) {
+    console.error("❌ [Firebase] Error getting token:", error);
+    return null;
   }
-  return null;
 };
 
-let listenerCount = 0; // ✅ Đếm số lần đăng ký listener
+/**
+ * ✅ Đăng ký listener nhận thông báo khi app đang mở
+ * (chỉ gắn 1 lần duy nhất, có cleanup)
+ */
+export const onMessageListener = (callback) => {
+  if (!messaging) {
+    console.error("❌ [Firebase] Messaging not initialized");
+    return;
+  }
 
-export const onMessageListener = () => {
-  listenerCount++;
-  console.log("📊 [Firebase] onMessageListener called, count:", listenerCount);
-  
-  return new Promise((resolve, reject) => {
-    if (!messaging) {
-      console.error("❌ [Firebase] Messaging not initialized");
-      reject(new Error("Firebase Messaging not initialized"));
-      return;
-    }
-    
-    console.log("🎯 [Firebase] Setting up onMessage listener #", listenerCount);
-    onMessage(messaging, (payload) => {
-      console.log(`📨 [Firebase] Listener #${listenerCount} received message:`, payload);
-      resolve(payload);
-    });
+  if (listenerAttached) {
+    console.log("⚠️ [Firebase] onMessageListener already attached — skipping");
+    return unsubscribe; // nếu đã attach rồi thì trả lại hàm hủy cũ
+  }
+
+  console.log("🎯 [Firebase] Setting up single onMessage listener");
+
+  unsubscribe = onMessage(messaging, (payload) => {
+    console.log("📨 [Firebase] Received foreground message:", payload);
+    if (callback) callback(payload);
   });
+
+  listenerAttached = true;
+  return unsubscribe;
+};
+
+export const removeMessageListener = () => {
+  if (unsubscribe) {
+    unsubscribe();
+    console.log("🧹 [Firebase] Foreground listener removed");
+    listenerAttached = false;
+    unsubscribe = null;
+  }
 };
 
 export default app;

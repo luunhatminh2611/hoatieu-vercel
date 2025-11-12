@@ -17,19 +17,19 @@ console.log("✅ [SW] Firebase initialized");
 
 const messaging = firebase.messaging();
 
-let messageCount = 0;
+messaging.onBackgroundMessage((payload) => {
+  console.log("[SW] Background message:", payload);
+  if (payload.data) {
+    console.log("[SW] Bỏ qua vì FCM đã tự hiển thị notification.");
+    return;
+  }
 
-messaging.onBackgroundMessage(function (payload) {
-  messageCount++;
-  console.log(`📬 [SW] Background message #${messageCount}:`, payload);
-  console.log("⏰ [SW] Thời gian:", new Date().toISOString());
-  
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/icons/logo-mobile.png',
+  // Chỉ xử lý message kiểu data
+  const title = payload.data?.title || "Thông báo";
+  const options = {
+    body: payload.data?.body || "",
+    icon: "/icons/logo-mobile.png",
   };
-  
-  console.log("🔔 [SW] Showing notification:", notificationTitle);
-  self.registration.showNotification(notificationTitle, notificationOptions);
+
+  self.registration.showNotification(title, options);
 });

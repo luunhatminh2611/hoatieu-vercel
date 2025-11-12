@@ -199,7 +199,7 @@ const PlanDetail = () => {
             {/* TRANSPORTATION INFO */}
             <div className="bg-[#003399] text-white border-t-[2px] sm:border-t-[3px] border-white/80 px-4 sm:px-6 py-2 sm:py-3 text-left">
               <p className="font-semibold text-xs sm:text-base">Thông tin phương tiện:</p>
-              <p className="mt-1 text-xs sm:text-base">{planData?.transportationInfo || "Không có thông tin"}</p>
+              <p className="mt-1 text-xs sm:text-base whitespace-pre-wrap">{planData?.transportationInfo || "Không có thông tin"}</p>
             </div>
           </div>
         </div>

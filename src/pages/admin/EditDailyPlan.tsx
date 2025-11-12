@@ -992,7 +992,7 @@ const EditPilotPlan = () => {
 
                         <div className="bg-[#003399] text-white border-t-[3px] border-white/80 px-6 py-3 text-left">
                             <p className="font-semibold">Thông tin phương tiện:</p>
-                            <p className="mt-1">{transportationInfo || ""}</p>
+                            <p className="mt-1 whitespace-pre-wrap">{transportationInfo || ""}</p>
                         </div>
                     </div>
                 </div>
