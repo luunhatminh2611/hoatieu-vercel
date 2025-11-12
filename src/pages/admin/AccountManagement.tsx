@@ -203,9 +203,25 @@ const AccountManagement = () => {
     }
 
     try {
-      await userService.updateUser({
-        ...selectedUser,
-      });
+      const formData = new FormData();
+
+      // Các field bắt buộc
+      formData.append('id', selectedUser.id);
+      formData.append('name', selectedUser.name);
+      formData.append('email', selectedUser.email);
+      formData.append('phone', selectedUser.phone || '');
+      formData.append('rankId', selectedUser.rankId || '');
+      formData.append('role', selectedUser.role || '');
+      formData.append('status', selectedUser.status);
+      // Chỉ append avatarFile nếu có ảnh mới được chọn
+      if (selectedUser.avatarFile) {
+        formData.append('avatarFile', selectedUser.avatarFile);
+      } else if (selectedUser.keyAvatar) {
+        // Nếu không có ảnh mới, giữ keyAvatar cũ
+        formData.append('keyAvatar', selectedUser.keyAvatar);
+      }
+
+      await userService.updateUser(formData);
 
       toast({
         title: "Thành công",
@@ -215,6 +231,7 @@ const AccountManagement = () => {
       setShowEditDialog(false);
       fetchAllUsers();
     } catch (error) {
+      console.error('Update error:', error.response?.data); // Debug log
       toast({
         title: "Lỗi cập nhật",
         description:
@@ -893,7 +910,9 @@ const AccountManagement = () => {
                   <div className="flex flex-col items-center gap-2">
                     <img
                       src={
-                        userService.getFileUrl(selectedUser.keyAvatar)
+                        selectedUser.avatarUrl
+                          ? selectedUser.avatarUrl  // Ảnh mới vừa chọn
+                          : userService.getFileUrl(selectedUser.keyAvatar)  // Ảnh cũ từ server
                       }
                       alt="Avatar"
                       className="w-24 h-24 rounded-full object-cover"
