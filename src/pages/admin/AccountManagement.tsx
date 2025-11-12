@@ -376,15 +376,15 @@ const AccountManagement = () => {
   };
 
   return (
-    <AdminLayout title="Quản Lý Hoa Tiêu">
+    <AdminLayout title="Quản Lý Người Dùng">
       <div className="min-h-screen bg-gradient-ocean-light">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-primary mb-2">
-              Quản Lý Hoa Tiêu
+              Quản Lý Người Dùng
             </h1>
             <p className="text-muted-foreground">
-              Quản lý tài khoản hoa tiêu và thứ hạng trong hệ thống
+              Quản lý tài khoản người dùng và thứ hạng trong hệ thống
             </p>
           </div>
 

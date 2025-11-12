@@ -10,7 +10,7 @@ import { authService } from "@/services/api";
 
 const menuItems = [
   { icon: Home, label: "Trang chủ", path: "/" },
-  { icon: Users, label: "Quản lý hoa tiêu", path: "/admin/accounts" },
+  { icon: Users, label: "Quản lý người dùng", path: "/admin/accounts" },
   { icon: Calendar, label: "Kế hoạch", path: "/admin/schedule" },
   { icon: Settings, label: "Cài đặt", path: "/admin/config" },
   { icon: SquareUserRound, label: "Hồ sơ của bạn", path: "/user-detail" },
