@@ -95,7 +95,7 @@ const PlanDetail = () => {
       <Navbar />
 
       <main className="pt-16 sm:mt-[120px] pb-16">
-        <div className="mx-auto px-8">
+        <div className="mx-auto px-4 sm:px-8 max-w-7xl">
           <Button
             variant="ghost"
             className="mb-6"
@@ -105,53 +105,53 @@ const PlanDetail = () => {
             Quay lại danh sách
           </Button>
 
-          <h1 className="text-3xl font-bold text-primary mb-6">
+          <h1 className="text-xl sm:text-3xl font-bold text-primary mb-4 sm:mb-6">
             Chi tiết kế hoạch điều động
           </h1>
 
           {/* PREVIEW TABLE */}
-          <div className="border-[4px] border-white overflow-hidden" style={{ boxShadow: "0 0 0 1px #003399 inset" }}>
+          <div className="border-[2px] sm:border-[4px] border-white overflow-hidden" style={{ boxShadow: "0 0 0 1px #003399 inset" }}>
             <div className="bg-[#003399] text-white">
-              <div className="border-b-[3px] border-white px-4 py-3 text-center">
-                <p className="font-bold uppercase text-sm">
+              <div className="border-b-[2px] sm:border-b-[3px] border-white px-3 sm:px-4 py-2 sm:py-3 text-center">
+                <p className="font-bold uppercase text-xs sm:text-sm">
                   KẾ HOẠCH CUNG ỨNG DỊCH VỤ HOA TIÊU HÀNG HẢI HÀNG NGÀY
                 </p>
               </div>
 
-              <div className="border-b-[3px] border-white px-4 py-4 text-center text-xs">
-                <p className="text-lg">{formatVietnameseDate(planData?.planDate)}</p>
+              <div className="border-b-[2px] sm:border-b-[3px] border-white px-3 sm:px-4 py-3 sm:py-4 text-center text-xs">
+                <p className="text-base sm:text-lg">{formatVietnameseDate(planData?.planDate)}</p>
               </div>
 
-              <div className="border-b-[3px] border-white px-4 py-4 text-center text-base font-medium">
+              <div className="border-b-[2px] sm:border-b-[3px] border-white px-3 sm:px-4 py-3 sm:py-4 text-center text-sm sm:text-base font-medium">
                 TRỰC BAN: {planData?.dutyPhone || ""}
               </div>
 
-              <div className="grid grid-cols-2 border-b-[3px] border-white/80">
-                <div className="px-6 py-3 border-r-[3px] border-white/80 flex flex-row items-center justify-center gap-2">
-                  <span className="font-extrabold text-lg">TRỰC BAN ĐHSX:</span>
-                  <span className="font-extrabold text-lg">{planData?.operationsOfficer || ""}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 border-b-[2px] sm:border-b-[3px] border-white/80">
+                <div className="px-4 sm:px-6 py-2 sm:py-3 border-b-[2px] sm:border-b-0 sm:border-r-[3px] border-white/80 flex flex-row items-center justify-center gap-2">
+                  <span className="font-extrabold text-sm sm:text-lg">TRỰC BAN ĐHSX:</span>
+                  <span className="font-extrabold text-sm sm:text-lg">{planData?.operationsOfficer || ""}</span>
                 </div>
-                <div className="px-6 py-3 flex flex-row items-center justify-center gap-2">
-                  <span className="font-extrabold text-lg">TRỰC BAN HOA TIÊU:</span>
-                  <span className="font-extrabold text-lg">{planData?.pilotOfficer || ""}</span>
+                <div className="px-4 sm:px-6 py-2 sm:py-3 flex flex-row items-center justify-center gap-2">
+                  <span className="font-extrabold text-sm sm:text-lg">TRỰC BAN HOA TIÊU:</span>
+                  <span className="font-extrabold text-sm sm:text-lg">{planData?.pilotOfficer || ""}</span>
                 </div>
               </div>
             </div>
 
             {/* TABLE */}
-            <div className="bg-[#003399] text-white p-4">
+            <div className="bg-[#003399] text-white p-1 sm:p-4">
               <div className="overflow-x-auto">
-                <table className="min-w-full border-collapse" style={{ borderSpacing: 0 }}>
+                <table className="w-full border-collapse text-[9px] sm:text-sm" style={{ borderSpacing: 0 }}>
                   <thead>
                     <tr>
                       {[
                         "TT", "POB", "Hoa tiêu", "Tập sự", "Tên tàu",
-                        "Mớn", "LOA", "GT", "Từ - Đến", "Tàu lai",
-                        "Phương tiện đưa đón", "Đại lý",
+                        "Mớn", "LOA", "GT", "Từ-Đến", "Tàu lai",
+                        "PT", "Đại lý",
                       ].map((h) => (
                         <th
                           key={h}
-                          className="text-center text-white px-3 py-2 border-[3px] border-white text-sm"
+                          className="text-center text-white px-0.5 sm:px-3 py-1 sm:py-2 border-[1px] sm:border-[3px] border-white"
                           style={{ background: "#003399" }}
                         >
                           <span className="font-semibold">{h}</span>
@@ -163,30 +163,30 @@ const PlanDetail = () => {
                   <tbody>
                     {loadingAssignments ? (
                       <tr>
-                        <td colSpan={14} className="text-center py-6 border-[3px] border-white text-white/80">
+                        <td colSpan={12} className="text-center py-4 sm:py-6 border-[1px] sm:border-[3px] border-white text-white/80">
                           Đang tải...
                         </td>
                       </tr>
                     ) : assignments.length > 0 ? (
                       assignments.map((a, i) => (
                         <tr key={a.id}>
-                          <td className="text-center border-[3px] border-white px-2 py-2">{i + 1}</td>
-                          <td className="text-center border-[3px] border-white px-2 py-2">{a.pob || "-"}</td>
-                          <td className="text-center border-[3px] border-white px-2 py-2">{a.pilotName || "-"}</td>
-                          <td className="text-center border-[3px] border-white px-2 py-2">{a.traineeName || "-"}</td>
-                          <td className="text-center border-[3px] border-white px-2 py-2">{a.shipName || "-"}</td>
-                          <td className="text-center border-[3px] border-white px-2 py-2">{a.draft || "-"}</td>
-                          <td className="text-center border-[3px] border-white px-2 py-2">{a.loa || "-"}</td>
-                          <td className="text-center border-[3px] border-white px-2 py-2">{a.gt || "-"}</td>
-                          <td className="text-center border-[3px] border-white px-2 py-2">{a.fromTo || "-"}</td>
-                          <td className="text-center border-[3px] border-white px-2 py-2">{a.tugBoat || "-"}</td>
-                          <td className="text-center border-[3px] border-white px-2 py-2">{a.transportMethod || "-"}</td>
-                          <td className="text-center border-[3px] border-white px-2 py-2">{a.agentName || "-"}</td>
+                          <td className="text-center border-[1px] sm:border-[3px] border-white px-0.5 sm:px-2 py-0.5 sm:py-2">{i + 1}</td>
+                          <td className="text-center border-[1px] sm:border-[3px] border-white px-0.5 sm:px-2 py-0.5 sm:py-2">{a.pob || "-"}</td>
+                          <td className="text-center border-[1px] sm:border-[3px] border-white px-0.5 sm:px-2 py-0.5 sm:py-2">{a.pilotName || "-"}</td>
+                          <td className="text-center border-[1px] sm:border-[3px] border-white px-0.5 sm:px-2 py-0.5 sm:py-2">{a.traineeName || "-"}</td>
+                          <td className="text-center border-[1px] sm:border-[3px] border-white px-0.5 sm:px-2 py-0.5 sm:py-2">{a.shipName || "-"}</td>
+                          <td className="text-center border-[1px] sm:border-[3px] border-white px-0.5 sm:px-2 py-0.5 sm:py-2">{a.draft || "-"}</td>
+                          <td className="text-center border-[1px] sm:border-[3px] border-white px-0.5 sm:px-2 py-0.5 sm:py-2">{a.loa || "-"}</td>
+                          <td className="text-center border-[1px] sm:border-[3px] border-white px-0.5 sm:px-2 py-0.5 sm:py-2">{a.gt || "-"}</td>
+                          <td className="text-center border-[1px] sm:border-[3px] border-white px-0.5 sm:px-2 py-0.5 sm:py-2">{a.fromTo || "-"}</td>
+                          <td className="text-center border-[1px] sm:border-[3px] border-white px-0.5 sm:px-2 py-0.5 sm:py-2">{a.tugBoat || "-"}</td>
+                          <td className="text-center border-[1px] sm:border-[3px] border-white px-0.5 sm:px-2 py-0.5 sm:py-2">{a.transportMethod || "-"}</td>
+                          <td className="text-center border-[1px] sm:border-[3px] border-white px-0.5 sm:px-2 py-0.5 sm:py-2">{a.agentName || "-"}</td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={14} className="text-center py-8 border-[3px] border-white text-white/80">
+                        <td colSpan={12} className="text-center py-6 sm:py-8 border-[1px] sm:border-[3px] border-white text-white/80">
                           Chưa có phân công nào
                         </td>
                       </tr>
@@ -197,9 +197,9 @@ const PlanDetail = () => {
             </div>
 
             {/* TRANSPORTATION INFO */}
-            <div className="bg-[#003399] text-white border-t-[3px] border-white/80 px-6 py-3 text-left">
-              <p className="font-semibold">Thông tin phương tiện:</p>
-              <p className="mt-1">{planData?.transportationInfo || "Không có thông tin"}</p>
+            <div className="bg-[#003399] text-white border-t-[2px] sm:border-t-[3px] border-white/80 px-4 sm:px-6 py-2 sm:py-3 text-left">
+              <p className="font-semibold text-xs sm:text-base">Thông tin phương tiện:</p>
+              <p className="mt-1 text-xs sm:text-base">{planData?.transportationInfo || "Không có thông tin"}</p>
             </div>
           </div>
         </div>
