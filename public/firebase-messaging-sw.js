@@ -1,6 +1,8 @@
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
 
+console.log("🔧 [SW] Service Worker loading...");
+
 firebase.initializeApp({
   apiKey: "AIzaSyBHVrVLkhFNuzev0AUTo4xnT6Hizx5JkIM",
   authDomain: "hoa-tieu-app.firebaseapp.com",
@@ -11,14 +13,23 @@ firebase.initializeApp({
   measurementId: "G-WHSMMB0815"
 });
 
+console.log("✅ [SW] Firebase initialized");
+
 const messaging = firebase.messaging();
 
+let messageCount = 0;
+
 messaging.onBackgroundMessage(function (payload) {
-  console.log("Received background message ", payload);
+  messageCount++;
+  console.log(`📬 [SW] Background message #${messageCount}:`, payload);
+  console.log("⏰ [SW] Thời gian:", new Date().toISOString());
+  
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
     icon: '/icons/logo-mobile.png',
   };
+  
+  console.log("🔔 [SW] Showing notification:", notificationTitle);
   self.registration.showNotification(notificationTitle, notificationOptions);
 });

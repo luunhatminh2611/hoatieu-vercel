@@ -14,28 +14,40 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 let messaging = null;
+let isInitialized = false; // ✅ Thêm flag để tránh init nhiều lần
 
-// ✅ Trả về Promise để FE có thể chờ
 export const initializeMessaging = async () => {
+  console.log("🔍 [Firebase] initializeMessaging called, isInitialized:", isInitialized);
+  
+  if (isInitialized) {
+    console.log("⚠️ [Firebase] Already initialized, skipping");
+    return messaging;
+  }
+
   try {
     const supported = await isSupported();
+    console.log("🔍 [Firebase] isSupported:", supported);
+    
     if (supported) {
       messaging = getMessaging(app);
-      console.log("✅ Firebase Messaging initialized");
+      isInitialized = true;
+      console.log("✅ [Firebase] Messaging initialized");
       return messaging;
     } else {
-      console.warn("Firebase Messaging not supported in this browser");
+      console.warn("⚠️ [Firebase] Not supported in this browser");
       return null;
     }
   } catch (error) {
-    console.error("Error initializing messaging:", error);
+    console.error("❌ [Firebase] Error initializing:", error);
     return null;
   }
 };
 
 export const requestForToken = async () => {
+  console.log("🔑 [Firebase] requestForToken called");
+  
   if (!messaging) {
-    console.warn("Firebase Messaging not initialized — wait for initializeMessaging()");
+    console.warn("⚠️ [Firebase] Messaging not initialized — wait for initializeMessaging()");
     return null;
   }
 
@@ -44,24 +56,36 @@ export const requestForToken = async () => {
       vapidKey: "BD3yyPQCbGXaVncyP_yvEp4VpFGMcbtDJC-_qpi5uxJnJmMpGCa-03rp-66rMZv0gEszrczjCD6ewePB_fTnibw",
     });
     if (token) {
-      console.log("FCM Token:", token);
+      console.log("✅ [Firebase] FCM Token:", token);
       return token;
     } else {
-      console.warn("No FCM registration token available");
+      console.warn("⚠️ [Firebase] No FCM registration token available");
     }
   } catch (err) {
-    console.error("Error retrieving FCM token:", err);
+    console.error("❌ [Firebase] Error retrieving FCM token:", err);
   }
   return null;
 };
 
-export const onMessageListener = () =>
-  new Promise((resolve, reject) => {
+let listenerCount = 0; // ✅ Đếm số lần đăng ký listener
+
+export const onMessageListener = () => {
+  listenerCount++;
+  console.log("📊 [Firebase] onMessageListener called, count:", listenerCount);
+  
+  return new Promise((resolve, reject) => {
     if (!messaging) {
+      console.error("❌ [Firebase] Messaging not initialized");
       reject(new Error("Firebase Messaging not initialized"));
       return;
     }
-    onMessage(messaging, (payload) => resolve(payload));
+    
+    console.log("🎯 [Firebase] Setting up onMessage listener #", listenerCount);
+    onMessage(messaging, (payload) => {
+      console.log(`📨 [Firebase] Listener #${listenerCount} received message:`, payload);
+      resolve(payload);
+    });
   });
+};
 
 export default app;

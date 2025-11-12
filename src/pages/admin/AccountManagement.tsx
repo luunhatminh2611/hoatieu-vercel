@@ -400,7 +400,7 @@ const AccountManagement = () => {
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <div>
-                      <CardTitle>Danh Sách Hoa Tiêu</CardTitle>
+                      <CardTitle>Danh Sách Người Dùng</CardTitle>
                       <CardDescription>Tổng: {users.length}</CardDescription>
                     </div>
                     <Dialog

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { requestForToken, onMessageListener, initializeMessaging } from "./firebase";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -47,25 +47,36 @@ import { authService } from "./services/api";
 const queryClient = new QueryClient();
 
 const App = () => {
+  const isListenerRegistered = useRef(false); // ✅ Dùng ref thay vì state
+
   useEffect(() => {
+    console.log("🔄 [App] useEffect chạy");
+
+    if (isListenerRegistered.current) {
+      console.log("⚠️ [App] Listener already registered, skipping");
+      return;
+    }
+
     const init = async () => {
       try {
+        console.log("🚀 [App] Bắt đầu init Firebase");
         await initializeMessaging();
 
-        // Chỉ nhận message, không đăng ký lại
+        console.log("📡 [App] Đăng ký onMessageListener");
         onMessageListener()
           .then((payload) => {
-            console.log("Received foreground message:", payload);
-            // Có thể toast thông báo ở đây nếu muốn
+            console.log("✅ [App] Received foreground message:", payload);
           })
-          .catch((err) => console.error("onMessage error:", err));
+          .catch((err) => console.error("❌ [App] onMessage error:", err));
+
+        isListenerRegistered.current = true; // ✅ Đánh dấu đã đăng ký
       } catch (error) {
-        console.error("Lỗi FCM:", error);
+        console.error("❌ [App] Lỗi FCM:", error);
       }
     };
 
     init();
-  }, [])
+  }, []);
 
   return (
     <Provider store={store}>
