@@ -33,7 +33,7 @@ const AdminLayout = ({ children }) => {
           isSidebarOpen={sidebarOpen}
         />
 
-        <main className="flex-1 overflow-y-auto mt-[100px] px-2 bg-gradient-ocean-light">
+        <main className="flex-1 overflow-y-auto mt-16 sm:mt-[100px] px-2 bg-gradient-ocean-light">
           {children}
         </main>
       </div>

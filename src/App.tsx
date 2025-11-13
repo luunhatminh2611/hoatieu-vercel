@@ -127,7 +127,9 @@ const App = () => {
                 <Route
                   path="/admin/accounts"
                   element={
+                    <ProtectedRoute requiredRoles={["ADMIN"]}>
                       <AccountManagement />
+                    </ProtectedRoute>
                   }
                 />
 
@@ -143,33 +145,43 @@ const App = () => {
                 <Route
                   path="/admin/schedule"
                   element={
+                    <ProtectedRoute requiredRoles={["ADMIN"]}>
                       <DispatchSchedule />
+                    </ProtectedRoute>
                   }
                 />
 
                 <Route
                   path="/admin/pilot-plans/create"
                   element={
+                    <ProtectedRoute requiredRoles={["ADMIN"]}>
                       <CreatePilotPlan />
+                    </ProtectedRoute>
                   }
                 />
                 <Route
                   path="/admin/pilot-plans/:planId"
                   element={
+                    <ProtectedRoute requiredRoles={["ADMIN"]}>
                       <EditPilotPlan />
+                    </ProtectedRoute>
                   }
                 />
                 <Route
                   path="/admin/config"
                   element={
+                    <ProtectedRoute requiredRoles={["ADMIN"]}>
                       <EmailConfig />
+                    </ProtectedRoute>
                   }
                 />
 
                 <Route
                   path="/admin/pilot-plans/create"
                   element={
+                    <ProtectedRoute requiredRoles={["ADMIN"]}>
                       <CreatePilotPlan />
+                    </ProtectedRoute>
                   }
                 />
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -395,45 +395,50 @@ const AccountManagement = () => {
   return (
     <AdminLayout>
       <div className="min-h-screen bg-gradient-ocean-light">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-primary mb-2">
+        <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+          <div className="mb-4 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">
               Quản Lý Người Dùng
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               Quản lý tài khoản người dùng và thứ hạng trong hệ thống
             </p>
           </div>
 
           <Tabs defaultValue="accounts" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="accounts">Danh Sách Tài Khoản</TabsTrigger>
-              <TabsTrigger value="ranks">Danh Sách Thứ Hạng</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-4 h-auto">
+              <TabsTrigger value="accounts" className="text-xs sm:text-sm py-2">
+                Tài Khoản
+              </TabsTrigger>
+              <TabsTrigger value="ranks" className="text-xs sm:text-sm py-2">
+                Thứ Hạng
+              </TabsTrigger>
             </TabsList>
 
             {/* Tab Tài Khoản */}
             <TabsContent value="accounts">
               <Card>
                 <CardHeader>
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
-                      <CardTitle>Danh Sách Người Dùng</CardTitle>
-                      <CardDescription>Tổng: {users.length}</CardDescription>
+                      <CardTitle className="text-lg sm:text-xl">Danh Sách Người Dùng</CardTitle>
+                      <CardDescription className="text-sm">Tổng: {users.length}</CardDescription>
                     </div>
                     <Dialog
                       open={showCreateDialog}
                       onOpenChange={setShowCreateDialog}
                     >
                       <DialogTrigger asChild>
-                        <Button className="bg-accent hover:bg-accent/90">
+                        <Button className="bg-accent hover:bg-accent/90 w-full sm:w-auto text-sm">
                           <Plus className="w-4 h-4 mr-2" />
-                          Thêm hoa tiêu
+                          <span className="hidden sm:inline">Thêm hoa tiêu</span>
+                          <span className="sm:hidden">Thêm</span>
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
-                          <DialogTitle>Tạo tài khoản mới</DialogTitle>
-                          <DialogDescription>
+                          <DialogTitle className="text-lg">Tạo tài khoản mới</DialogTitle>
+                          <DialogDescription className="text-sm">
                             Nhập đầy đủ thông tin bên dưới
                           </DialogDescription>
                         </DialogHeader>
@@ -493,8 +498,8 @@ const AccountManagement = () => {
                               className="w-full border rounded-md px-3 py-2 bg-white"
                             >
                               <option value="">-- Chọn vai trò --</option>
-                              <option value="ADMIN">ADMIN</option>
-                              <option value="PILOT">PILOT</option>
+                              <option value="ADMIN">Quản lý</option>
+                              <option value="PILOT">Hoa tiêu</option>
                             </select>
                           </div>
 
@@ -544,20 +549,20 @@ const AccountManagement = () => {
                 </CardHeader>
 
                 <CardContent>
-                  <div className="flex gap-3 mb-4">
+                  <div className="flex flex-col sm:flex-row gap-3 mb-4">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
-                        placeholder="Tìm kiếm theo tên, email hoặc SĐT..."
+                        placeholder="Tìm kiếm..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 text-sm"
                       />
                     </div>
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
-                      className="w-48 border rounded-md px-3 py-2"
+                      className="w-full sm:w-48 border rounded-md px-3 py-2 text-sm"
                     >
                       <option value="all">Tất cả trạng thái</option>
                       <option value="active">Hiệu lực</option>
@@ -565,7 +570,8 @@ const AccountManagement = () => {
                     </select>
                   </div>
 
-                  <div className="rounded-md border divide-y divide-gray-200">
+                  {/* Desktop table view - hidden on mobile */}
+                  <div className="hidden md:block rounded-md border divide-y divide-gray-200">
                     <Table className="border-collapse">
                       <TableHeader>
                         <TableRow className="bg-gray-100">
@@ -576,9 +582,7 @@ const AccountManagement = () => {
                           <TableHead className="border">Rank</TableHead>
                           <TableHead className="border">Vai trò</TableHead>
                           <TableHead className="border">Trạng thái</TableHead>
-                          <TableHead className="border">
-                            Hành động
-                          </TableHead>
+                          <TableHead className="border">Hành động</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -668,22 +672,123 @@ const AccountManagement = () => {
                     </Table>
                   </div>
 
-                  <div className="flex justify-between items-center mt-4">
-                    <div className="flex items-center gap-4">
+                  {/* Mobile card view - shown on mobile only */}
+                  <div className="md:hidden space-y-3">
+                    {loading ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Đang tải...
+                      </div>
+                    ) : users.length > 0 ? (
+                      users.map((u, i) => (
+                        <Card key={u.id} className="border shadow-sm">
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-xs text-muted-foreground">
+                                    #{page * size + i + 1}
+                                  </span>
+                                  <span
+                                    className={`px-2 py-0.5 rounded-full text-xs ${u.status
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-red-100 text-red-800"
+                                      }`}
+                                  >
+                                    {u.status ? "Hiệu lực" : "Vô hiệu"}
+                                  </span>
+                                </div>
+                                <h3 className="font-semibold text-base">{u.name}</h3>
+                                <p className="text-sm text-muted-foreground break-all">
+                                  {u.email}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-1.5 text-sm mb-3">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">SĐT:</span>
+                                <span className="font-medium">{u.phone || "-"}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Rank:</span>
+                                <span className="font-medium">{u.rank || "—"}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Vai trò:</span>
+                                <span className="font-medium">{u.role || "—"}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => {
+                                  const currentRank = ranks.find(r => r.name === u.rank);
+                                  setSelectedUser({
+                                    ...u,
+                                    avatarUrl: "",
+                                    rankId: currentRank?.id || u.rankId || "",
+                                  });
+                                  setShowEditDialog(true);
+                                }}
+                              >
+                                <Edit className="w-4 h-4 mr-1" />
+                                Sửa
+                              </Button>
+                              {u.status ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1 text-destructive border-destructive"
+                                  onClick={() => openConfirmDialog("ban", u)}
+                                >
+                                  Vô hiệu
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1 text-green-600 border-green-600"
+                                  onClick={() => openConfirmDialog("activate", u)}
+                                >
+                                  Kích hoạt
+                                </Button>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        {searchQuery || statusFilter !== "all"
+                          ? `Không tìm thấy kết quả`
+                          : "Không có tài khoản nào"}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-4">
+                    <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-center">
                       <Button
                         variant="outline"
+                        size="sm"
                         disabled={page <= 0}
                         onClick={() => setPage(page - 1)}
+                        className="flex-1 sm:flex-none"
                       >
                         Trước
                       </Button>
-                      <span className="text-sm">
+                      <span className="text-xs sm:text-sm whitespace-nowrap">
                         Trang {page + 1} / {totalPages || 1}
                       </span>
                       <Button
                         variant="outline"
+                        size="sm"
                         disabled={page + 1 >= totalPages}
                         onClick={() => setPage(page + 1)}
+                        className="flex-1 sm:flex-none"
                       >
                         Sau
                       </Button>
@@ -697,10 +802,10 @@ const AccountManagement = () => {
             <TabsContent value="ranks">
               <Card>
                 <CardHeader>
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
-                      <CardTitle>Danh Sách Thứ Hạng</CardTitle>
-                      <CardDescription>
+                      <CardTitle className="text-lg sm:text-xl">Danh Sách Thứ Hạng</CardTitle>
+                      <CardDescription className="text-sm">
                         Tổng: {ranks.length} thứ hạng
                       </CardDescription>
                     </div>
@@ -709,15 +814,15 @@ const AccountManagement = () => {
                       onOpenChange={setShowCreateRankDialog}
                     >
                       <DialogTrigger asChild>
-                        <Button className="bg-accent hover:bg-accent/90">
+                        <Button className="bg-accent hover:bg-accent/90 w-full sm:w-auto text-sm">
                           <Plus className="w-4 h-4 mr-2" />
                           Thêm thứ hạng
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="max-w-[95vw] sm:max-w-md">
                         <DialogHeader>
-                          <DialogTitle>Tạo thứ hạng mới</DialogTitle>
-                          <DialogDescription>
+                          <DialogTitle className="text-lg">Tạo thứ hạng mới</DialogTitle>
+                          <DialogDescription className="text-sm">
                             Nhập thông tin thứ hạng
                           </DialogDescription>
                         </DialogHeader>
@@ -766,7 +871,8 @@ const AccountManagement = () => {
                 </CardHeader>
 
                 <CardContent>
-                  <div className="rounded-md border">
+                  {/* Desktop table view */}
+                  <div className="hidden md:block rounded-md border">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-gray-100">
@@ -774,9 +880,7 @@ const AccountManagement = () => {
                           <TableHead className="border">Tên thứ hạng</TableHead>
                           <TableHead className="border">Vị trí (Index)</TableHead>
                           <TableHead className="border">Trạng thái</TableHead>
-                          <TableHead className="border">
-                            Hành động
-                          </TableHead>
+                          <TableHead className="border">Hành động</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -836,6 +940,67 @@ const AccountManagement = () => {
                       </TableBody>
                     </Table>
                   </div>
+
+                  {/* Mobile card view */}
+                  <div className="md:hidden space-y-3">
+                    {ranks.length > 0 ? (
+                      ranks.map((rank, index) => (
+                        <Card key={rank.id} className="border shadow-sm">
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-xs text-muted-foreground">
+                                    #{index + 1}
+                                  </span>
+                                  <span className="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">
+                                    Hiệu lực
+                                  </span>
+                                </div>
+                                <h3 className="font-semibold text-base mb-1">
+                                  {rank.name}
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                  Vị trí: {rank.index}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => {
+                                  setEditingRank(rank);
+                                  setShowEditRankDialog(true);
+                                }}
+                              >
+                                <Edit className="w-4 h-4 mr-1" />
+                                Sửa
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1 text-destructive border-destructive"
+                                onClick={() => {
+                                  setSelectedRank(rank);
+                                  setShowDeleteRankDialog(true);
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4 mr-1" />
+                                Xóa
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Chưa có thứ hạng nào
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -844,10 +1009,10 @@ const AccountManagement = () => {
 
         {/* Dialog chỉnh sửa user */}
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent>
+          <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Chỉnh sửa tài khoản</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-lg">Chỉnh sửa tài khoản</DialogTitle>
+              <DialogDescription className="text-sm">
                 Cập nhật thông tin người dùng
               </DialogDescription>
             </DialogHeader>
@@ -911,8 +1076,8 @@ const AccountManagement = () => {
                     <img
                       src={
                         selectedUser.avatarUrl
-                          ? selectedUser.avatarUrl  // Ảnh mới vừa chọn
-                          : userService.getFileUrl(selectedUser.keyAvatar)  // Ảnh cũ từ server
+                          ? selectedUser.avatarUrl
+                          : userService.getFileUrl(selectedUser.keyAvatar)
                       }
                       alt="Avatar"
                       className="w-24 h-24 rounded-full object-cover"
@@ -949,10 +1114,10 @@ const AccountManagement = () => {
           </DialogContent>
         </Dialog>
         <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-          <DialogContent>
+          <DialogContent className="max-w-[95vw] sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Xác nhận hành động</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-lg">Xác nhận hành động</DialogTitle>
+              <DialogDescription className="text-sm">
                 {confirmAction?.action === "ban"
                   ? "Bạn có chắc chắn muốn vô hiệu hóa tài khoản này?"
                   : "Bạn có chắc chắn muốn kích hoạt lại tài khoản này?"}
@@ -1000,10 +1165,10 @@ const AccountManagement = () => {
         </Dialog>
 
         <Dialog open={showEditRankDialog} onOpenChange={setShowEditRankDialog}>
-          <DialogContent>
+          <DialogContent className="max-w-[95vw] sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Chỉnh sửa thứ hạng</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-lg">Chỉnh sửa thứ hạng</DialogTitle>
+              <DialogDescription className="text-sm">
                 Cập nhật thông tin thứ hạng
               </DialogDescription>
             </DialogHeader>
@@ -1053,10 +1218,10 @@ const AccountManagement = () => {
 
         {/* Dialog xác nhận xóa rank */}
         <Dialog open={showDeleteRankDialog} onOpenChange={setShowDeleteRankDialog}>
-          <DialogContent>
+          <DialogContent className="max-w-[95vw] sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Xác nhận xóa thứ hạng</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-lg">Xác nhận xóa thứ hạng</DialogTitle>
+              <DialogDescription className="text-sm">
                 Bạn có chắc chắn muốn xóa thứ hạng này?
               </DialogDescription>
             </DialogHeader>
