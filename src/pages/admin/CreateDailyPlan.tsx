@@ -471,7 +471,7 @@ const CreatePilotPlan = () => {
     const transportationInfo = form.watch("transportationInfo");
 
     return (
-        <AdminLayout title="Tạo kế hoạch">
+        <AdminLayout>
             <div className="min-h-screen bg-gradient-ocean-light">
                 <div className="container mx-auto px-4 py-8">
                     <Button

@@ -152,7 +152,7 @@ const OrderList = () => {
 
   if (loading) {
     return (
-      <AdminLayout title={"Danh sách đơn hàng"}>
+      <AdminLayout>
         <div className="min-h-screen bg-gradient-ocean-light">
           <div className="container mx-auto px-4 pt-24 flex justify-center items-center">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -164,7 +164,7 @@ const OrderList = () => {
   }
 
   return (
-    <AdminLayout title={"Danh sách đơn hàng"}>
+    <AdminLayout>
       <div className="min-h-screen bg-gradient-ocean-light">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-6">

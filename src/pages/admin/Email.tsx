@@ -170,7 +170,7 @@ const EmailConfig = () => {
   }, []);
 
   return (
-    <AdminLayout title={"Cài đặt Email"}>
+    <AdminLayout>
       <div className="min-h-screen bg-gradient-ocean-light">
         <main className="py-8">
           <section className="max-w-4xl mx-auto px-6">

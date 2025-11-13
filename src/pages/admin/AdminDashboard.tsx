@@ -41,7 +41,7 @@ const handleLogout = () => {
 
 const AdminDashboard = () => {
   return (
-    <AdminLayout title="Tổng quan">
+    <AdminLayout>
       <div className="min-h-screen bg-gradient-ocean-light">
         <div className="container mx-auto px-4 py-8">
           {/* Welcome Section */}

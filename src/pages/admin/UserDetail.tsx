@@ -127,7 +127,7 @@ const UserProfile = () => {
   const defaultAvatar = "https://ui-avatars.com/api/?name=" + encodeURIComponent(usersDetail?.name || "User") + "&background=0D8ABC&color=fff&size=200";
 
   return (
-    <AdminLayout title={"Thông tin cá nhân"}>
+    <AdminLayout>
       <div className="min-h-screen bg-gradient-ocean-light">
         <main className="py-8">
           <section className="max-w-4xl mx-auto px-6">

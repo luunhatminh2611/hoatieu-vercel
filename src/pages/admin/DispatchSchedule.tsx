@@ -127,7 +127,7 @@ const PilotPlans = () => {
   };
 
   return (
-    <AdminLayout title="Quản lý kế hoạch điều động">
+    <AdminLayout>
       <div className="min-h-screen bg-gradient-ocean-light">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">

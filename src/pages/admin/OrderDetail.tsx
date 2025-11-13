@@ -95,7 +95,7 @@ const OrderDetail = () => {
 
     if (loading) {
         return (
-            <AdminLayout title={"Danh sách đơn hàng"}>
+            <AdminLayout>
                 <div className="min-h-screen bg-gradient-ocean-light">
                     <div className="container mx-auto px-4 py-8 flex justify-center items-center">
                         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -108,7 +108,7 @@ const OrderDetail = () => {
 
     if (!order) {
         return (
-            <AdminLayout title={"Danh sách đơn hàng"}>
+            <AdminLayout>
                 <div className="min-h-screen bg-gradient-ocean-light">
                     <div className="container mx-auto px-4 py-8">
                         <Card>
@@ -126,7 +126,7 @@ const OrderDetail = () => {
     }
 
     return (
-        <AdminLayout title="Chi tiết đơn hàng">
+        <AdminLayout>
             <div className="min-h-screen bg-gradient-ocean-light">
                 <div className="container mx-auto px-4 py-8">
                     {/* Header */}

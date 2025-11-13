@@ -467,7 +467,7 @@ const EditPilotPlan = () => {
 
     if (loadingPlan) {
         return (
-            <AdminLayout title="Chỉnh sửa kế hoạch">
+            <AdminLayout>
                 <div className="min-h-screen bg-gradient-ocean-light flex items-center justify-center">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
@@ -521,7 +521,7 @@ const EditPilotPlan = () => {
     };
 
     return (
-        <AdminLayout title="Chỉnh sửa kế hoạch">
+        <AdminLayout>
             <div className="min-h-screen bg-gradient-ocean-light">
                 <div className="container mx-auto px-4 py-8">
                     <Button
